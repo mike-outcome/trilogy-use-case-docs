@@ -1,0 +1,524 @@
+<title>Deal Room — Redesign Mockup</title>
+<style>
+  :root {
+    --canvas:#F6F8F6; --surface:#FFFFFF; --surface-2:#FAFCFA; --surface-3:#F2F5F2;
+    --border:#E4E8E4; --border-strong:#D5DAD5;
+    --ink:#16201A; --ink-2:#5C685F; --ink-3:#8A948C;
+    --accent:#0A8F3C; --accent-strong:#08A715; --accent-tint:#EAF7EE; --accent-tint-2:#F4FBF6;
+    --pass:#14884A; --pass-bg:#E7F6ED; --pass-bd:#BFE6CD;
+    --warn:#B9700A; --warn-bg:#FDF3E0; --warn-bd:#F3D9A6;
+    --crit:#C0392B; --crit-bg:#FBEBE9; --crit-bd:#F1CFC9;
+    --info:#1E6FB8; --info-bg:#E7F1FB; --info-bd:#C6DDF3;
+    --shadow:0 1px 2px rgba(20,40,25,.05), 0 4px 16px rgba(20,40,25,.05);
+    --radius:12px; --radius-sm:8px;
+    --font:'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --canvas:#0E1411; --surface:#161D19; --surface-2:#1B241F; --surface-3:#202a24;
+      --border:#2A342D; --border-strong:#3A463D;
+      --ink:#E7EFE9; --ink-2:#A6B2AA; --ink-3:#77837B;
+      --accent:#33D17A; --accent-strong:#2FC471; --accent-tint:#16281E; --accent-tint-2:#12201A;
+      --pass:#4ADE80; --pass-bg:#14281C; --pass-bd:#1F4830;
+      --warn:#F0B44A; --warn-bg:#2A2113; --warn-bd:#4A3A18;
+      --crit:#F1786B; --crit-bg:#2A1714; --crit-bd:#4A2620;
+      --info:#6FB2F0; --info-bg:#12202E; --info-bd:#1E3A52;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="light"] {
+    --canvas:#F6F8F6; --surface:#FFFFFF; --surface-2:#FAFCFA; --surface-3:#F2F5F2;
+    --border:#E4E8E4; --border-strong:#D5DAD5; --ink:#16201A; --ink-2:#5C685F; --ink-3:#8A948C;
+    --accent:#0A8F3C; --accent-strong:#08A715; --accent-tint:#EAF7EE; --accent-tint-2:#F4FBF6;
+    --pass:#14884A; --pass-bg:#E7F6ED; --pass-bd:#BFE6CD; --warn:#B9700A; --warn-bg:#FDF3E0; --warn-bd:#F3D9A6;
+    --crit:#C0392B; --crit-bg:#FBEBE9; --crit-bd:#F1CFC9; --info:#1E6FB8; --info-bg:#E7F1FB; --info-bd:#C6DDF3;
+  }
+  :root[data-theme="dark"] {
+    --canvas:#0E1411; --surface:#161D19; --surface-2:#1B241F; --surface-3:#202a24;
+    --border:#2A342D; --border-strong:#3A463D; --ink:#E7EFE9; --ink-2:#A6B2AA; --ink-3:#77837B;
+    --accent:#33D17A; --accent-strong:#2FC471; --accent-tint:#16281E; --accent-tint-2:#12201A;
+    --pass:#4ADE80; --pass-bg:#14281C; --pass-bd:#1F4830; --warn:#F0B44A; --warn-bg:#2A2113; --warn-bd:#4A3A18;
+    --crit:#F1786B; --crit-bg:#2A1714; --crit-bd:#4A2620; --info:#6FB2F0; --info-bg:#12202E; --info-bd:#1E3A52;
+  }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--canvas); color:var(--ink); font-family:var(--font);
+    -webkit-font-smoothing:antialiased; line-height:1.5; }
+  h1,h2,h3,h4 { margin:0; text-wrap:balance; }
+  .num { font-variant-numeric:tabular-nums; }
+  .micro { font-size:10.5px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--ink-3); }
+
+  .context { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 24px; }
+  .context .lead b { font-size:14px; font-weight:700; letter-spacing:-.2px; display:block; }
+  .context .lead span { font-size:12px; color:var(--ink-2); }
+
+  .frame { display:flex; min-height:100vh; }
+  .sidebar { width:227px; flex-shrink:0; background:var(--surface-2); border-right:1px solid var(--border);
+    padding:14px 12px; display:flex; flex-direction:column; gap:2px; position:sticky; top:0; height:100vh; }
+  .brand { display:flex; align-items:center; gap:10px; padding:8px 8px 14px; }
+  .brand .logo { width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,#08A715,#00C853);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:14px; }
+  .brand b { font-size:15px; font-weight:700; letter-spacing:-.2px; }
+  .nav { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:9px; color:var(--ink-2);
+    font-size:13.5px; font-weight:500; cursor:default; }
+  .nav svg { width:18px; height:18px; flex-shrink:0; }
+  .nav:hover { background:var(--surface-3); }
+  .nav.active { background:color-mix(in srgb, var(--accent) 15%, transparent); color:var(--accent); font-weight:600; }
+  .nav.active svg { color:var(--accent); }
+
+  .main { flex:1; min-width:0; }
+  .page { padding:24px 28px 48px; max-width:1240px; }
+
+  .page-hd { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+  .page-title { font-size:26px; font-weight:700; letter-spacing:-.5px; margin-bottom:4px; }
+  .page-sub { font-size:13.5px; color:var(--ink-2); }
+
+  .btn { border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; font-family:var(--font);
+    cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+  .btn svg { width:17px; height:17px; }
+  .btn-primary { background:var(--accent-strong); color:#fff; }
+  .btn-sm { padding:7px 12px; font-size:12.5px; font-weight:600; border-radius:7px; }
+  .btn-ghost { background:transparent; border:1px solid var(--border-strong); color:var(--ink-2); }
+
+  .section-eyebrow { display:flex; align-items:center; gap:10px; margin:0 0 12px; }
+  .section-eyebrow .micro { color:var(--ink-2); }
+  .section-eyebrow::after { content:''; height:1px; background:var(--border); flex:1; }
+
+  /* KPI strip */
+  .kpi-strip { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:20px; }
+  .kpi { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:12px 14px; box-shadow:var(--shadow); }
+  .kpi .k-lab { font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-3); }
+  .kpi .k-val { font-size:21px; font-weight:800; letter-spacing:-.5px; margin-top:3px; }
+  .kpi .k-sub { font-size:10.5px; color:var(--ink-2); margin-top:1px; }
+
+  /* selectors */
+  .selectors { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .sel { display:flex; flex-direction:column; gap:4px; }
+  .sel label { font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-3); }
+  .sel-box { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border-strong);
+    border-radius:8px; padding:9px 12px; min-width:240px; font-size:13.5px; font-weight:600; color:var(--ink); }
+  .sel-box svg { width:15px; height:15px; color:var(--ink-3); }
+  .sel-box select { border:none; outline:none; background:transparent; font-family:var(--font); font-size:13.5px;
+    font-weight:600; color:var(--ink); width:100%; cursor:pointer; }
+
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+  .card-pad { padding:20px; }
+  .divider { height:1px; background:var(--border); margin:16px 0; border:0; }
+
+  /* Deal overview */
+  .ov-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .ov-title { font-size:18px; font-weight:700; letter-spacing:-.3px; }
+  .prop-meta { font-size:12.5px; color:var(--ink-2); margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 0; }
+  .prop-meta span:not(:last-child)::after { content:'·'; margin:0 7px; color:var(--ink-3); }
+  .doc-chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .doc-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 9px;
+    border-radius:12px; background:var(--accent-tint); color:var(--accent); border:1px solid color-mix(in srgb,var(--accent) 25%,transparent); }
+  .doc-chip svg { width:12px; height:12px; }
+
+  .returns-band { display:flex; align-items:center; gap:12px; border-radius:var(--radius-sm); padding:12px 16px;
+    background:var(--pass-bg); border:1px solid var(--pass-bd); margin:16px 0; }
+  .returns-band.warn { background:var(--warn-bg); border-color:var(--warn-bd); }
+  .returns-band .rb-icon { width:22px; height:22px; color:var(--pass); flex-shrink:0; }
+  .returns-band.warn .rb-icon { color:var(--warn); }
+  .returns-band .rb-txt { font-size:13px; color:var(--ink); }
+  .returns-band .rb-txt b { font-weight:700; }
+
+  .m-tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .m-tile { border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; background:var(--surface-2); }
+  .m-tile.hero { background:var(--accent-tint-2); border-color:color-mix(in srgb,var(--accent) 22%,transparent); }
+  .m-tile .mt-lab { font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-2); }
+  .m-tile .mt-val { font-size:21px; font-weight:800; letter-spacing:-.5px; margin-top:4px; }
+  .m-tile.hero .mt-val { color:var(--accent); }
+  .m-tile .mt-sub { font-size:10.5px; color:var(--ink-3); margin-top:2px; }
+
+  .chart-wrap { margin-top:16px; border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; background:var(--surface); }
+  .chart-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .chart-hd .ct { font-size:12.5px; font-weight:700; }
+  .chart-hd .cs { font-size:11px; color:var(--ink-2); }
+
+  /* deals & scenarios */
+  .prop-group { border:1px solid var(--border); border-radius:var(--radius); background:var(--surface);
+    box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden; }
+  .pg-head { display:flex; align-items:center; gap:14px; padding:16px 18px; cursor:pointer; }
+  .pg-head:hover { background:var(--surface-2); }
+  .pg-chev { width:18px; height:18px; color:var(--ink-3); transition:transform .2s ease; flex-shrink:0; }
+  .prop-group.open .pg-chev { transform:rotate(90deg); }
+  .pg-name { font-size:15px; font-weight:700; }
+  .pg-sub { font-size:12px; color:var(--ink-2); }
+  .pg-right { margin-left:auto; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .pg-stat { text-align:right; }
+  .pg-stat .s-lab { font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-3); }
+  .pg-stat .s-val { font-size:13.5px; font-weight:700; }
+  .pg-body { border-top:1px solid var(--border); padding:16px 18px; background:var(--surface-2); display:none; flex-direction:column; gap:12px; }
+  .prop-group.open .pg-body { display:flex; }
+
+  .scenario { border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); padding:14px 16px; }
+  .scenario.current { border-color:color-mix(in srgb,var(--accent) 40%,transparent); box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent); }
+  .sc-top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .sc-name { font-size:14px; font-weight:700; }
+  .sc-ver { font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-tint); border-radius:5px; padding:2px 7px; }
+  .sc-actions { margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; }
+  .link-btn { font-size:12px; font-weight:600; color:var(--ink-2); background:transparent; border:1px solid var(--border);
+    border-radius:6px; padding:5px 10px; cursor:pointer; font-family:var(--font); display:inline-flex; align-items:center; gap:5px; }
+  .link-btn svg { width:13px; height:13px; }
+  .link-btn.primary { color:var(--accent); border-color:color-mix(in srgb,var(--accent) 35%,transparent); }
+
+  .sc-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:16px; }
+  .sc-block .sb-lab { font-size:9.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; }
+  .inputs-list { display:flex; flex-direction:column; gap:6px; }
+  .input-row { display:flex; align-items:center; gap:8px; font-size:12.5px; }
+  .input-row .ir-doc { font-weight:600; min-width:70px; }
+  .input-row .ir-meta { color:var(--ink-2); display:inline-flex; align-items:center; gap:5px; }
+  .input-row svg { width:12px; height:12px; flex-shrink:0; }
+  .reuse { color:var(--info); }
+  .fresh { color:var(--pass); }
+  .assump-chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .a-chip { font-size:11px; font-weight:600; padding:3px 9px; border-radius:12px; background:var(--surface-3);
+    color:var(--ink-2); border:1px solid var(--border); }
+
+  .status-pill { font-size:10px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; padding:3px 9px; border-radius:12px; }
+  .st-ready { background:var(--pass-bg); color:var(--pass); border:1px solid var(--pass-bd); }
+  .st-draft { background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-bd); }
+
+  .add-scenario { display:flex; align-items:center; justify-content:center; gap:7px; padding:11px; border:1px dashed var(--border-strong);
+    border-radius:var(--radius-sm); color:var(--ink-2); font-size:12.5px; font-weight:600; cursor:pointer; background:transparent; font-family:var(--font); }
+  .add-scenario svg { width:15px; height:15px; }
+
+  @media (max-width: 980px) {
+    .kpi-strip { grid-template-columns:repeat(3,1fr); }
+    .m-tiles { grid-template-columns:repeat(2,1fr); }
+    .sc-grid { grid-template-columns:1fr; }
+  }
+  @media (max-width: 900px) { .sidebar { display:none; } }
+  @media (max-width: 560px) {
+    .kpi-strip { grid-template-columns:repeat(2,1fr); }
+    .m-tiles { grid-template-columns:1fr; }
+    .page { padding:18px 16px 40px; }
+    .sel-box { min-width:0; width:100%; }
+    .sel { width:100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { .pg-chev { transition:none; } }
+</style>
+
+<div class="context">
+  <div class="lead">
+    <b>Deal Room — Redesign Mockup</b>
+    <span>Consolidates the old Dashboard into the top of the Deal Room · Trilogy Real Estate</span>
+  </div>
+</div>
+
+<div class="frame">
+  <!-- Sidebar (Dashboard removed — now lives inside Deal Room) -->
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">T</div><b>Trilogy RE</b></div>
+    <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"/></svg> Deal Screening</div>
+    <div class="nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg> Deal Room</div>
+    <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg> T-12</div>
+    <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M8 8h.01M11 8h.01M8 12h.01M11 12h.01"/></svg> Rent Roll</div>
+    <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M17 7h4v4"/></svg> Pro Forma</div>
+    <div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16H3m0 0 3-3m-3 3 3 3M17 8h4m0 0-3-3m3 3-3 3"/></svg> Compare</div>
+  </aside>
+
+  <main class="main">
+    <div class="page">
+      <div class="page-hd">
+        <div>
+          <h1 class="page-title">Deal Room</h1>
+          <p class="page-sub">Your portfolio at a glance, and the single place to create and manage underwriting scenarios.</p>
+        </div>
+        <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>New Deal</button>
+      </div>
+
+      <!-- ══════════ PORTFOLIO OVERVIEW (from Dashboard) ══════════ -->
+      <div class="section-eyebrow"><span class="micro">Portfolio Overview</span></div>
+
+      <div class="kpi-strip">
+        <div class="kpi"><div class="k-lab">Properties</div><div class="k-val num">4</div><div class="k-sub">in pipeline</div></div>
+        <div class="kpi"><div class="k-lab">Scenarios</div><div class="k-val num">8</div><div class="k-sub">across all deals</div></div>
+        <div class="kpi"><div class="k-lab">Total Units</div><div class="k-val num">1,096</div><div class="k-sub">4 properties</div></div>
+        <div class="kpi"><div class="k-lab">Portfolio Value</div><div class="k-val num">$278M</div><div class="k-sub">at asking</div></div>
+        <div class="kpi"><div class="k-lab">Avg Going-in Cap</div><div class="k-val num">5.5%</div><div class="k-sub">latest scenarios</div></div>
+        <div class="kpi"><div class="k-lab">Ready</div><div class="k-val num">5<span style="font-size:13px;color:var(--ink-3)"> / 8</span></div><div class="k-sub">underwritten</div></div>
+      </div>
+
+      <div class="selectors">
+        <div class="sel">
+          <label>Property</label>
+          <div class="sel-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01"/></svg>
+            <select aria-label="Select property"><option>Sabal Point Apartments — Tampa, FL</option><option>Harbor Crossing — Charleston, SC</option><option>Cypress Bend — Savannah, GA</option><option>Brookside Station — Nashville, TN</option></select>
+          </div>
+        </div>
+        <div class="sel">
+          <label>Scenario</label>
+          <div class="sel-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v16a2 2 0 0 0 2 2h12M9 8h8M9 12h8M9 16h5"/></svg>
+            <select id="scenarioSel" aria-label="Select scenario" onchange="swapScenario(this.value)">
+              <option value="v1">V1 — In-Place</option>
+              <option value="v2" selected>V2 — Base Case</option>
+              <option value="v3">V3 — Value-Add</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deal overview card (metrics change with scenario) -->
+      <section class="card card-pad" aria-label="Deal overview">
+        <div class="ov-head">
+          <div>
+            <div class="ov-title">Sabal Point Apartments</div>
+            <div class="prop-meta">
+              <span>Tampa, FL</span><span>312 units</span><span>Built 2005</span><span>Garden Style</span><span>296,400 SF</span><span>Sabal / Brandon submarket</span>
+            </div>
+          </div>
+          <div class="doc-chips">
+            <span class="doc-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>T-12</span>
+            <span class="doc-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Rent Roll</span>
+            <span class="doc-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>OM</span>
+          </div>
+        </div>
+
+        <div class="returns-band" id="returnsBand">
+          <svg class="rb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div class="rb-txt" id="returnsTxt"><b>Clears fund targets.</b> 14.2% levered IRR and 2.1x equity multiple beat the 12% / 2.0x hurdles.</div>
+        </div>
+
+        <div class="m-tiles">
+          <div class="m-tile hero"><div class="mt-lab">Levered IRR</div><div class="mt-val num" id="mIRR">14.2%</div><div class="mt-sub">target 12%+</div></div>
+          <div class="m-tile hero"><div class="mt-lab">Equity Multiple</div><div class="mt-val num" id="mEM">2.1x</div><div class="mt-sub">target 2.0x+</div></div>
+          <div class="m-tile"><div class="mt-lab">Going-in Cap</div><div class="mt-val num" id="mCap">5.50%</div><div class="mt-sub">NOI ÷ price</div></div>
+          <div class="m-tile"><div class="mt-lab">Yr 1 NOI</div><div class="mt-val num" id="mNOI">$4.45M</div><div class="mt-sub">underwritten</div></div>
+          <div class="m-tile"><div class="mt-lab">Purchase Price</div><div class="mt-val num">$78.0M</div><div class="mt-sub">$250K / unit</div></div>
+          <div class="m-tile"><div class="mt-lab">Exit Cap</div><div class="mt-val num">5.75%</div><div class="mt-sub">entry + 25 bps</div></div>
+          <div class="m-tile"><div class="mt-lab">LTV</div><div class="mt-val num">65%</div><div class="mt-sub">$50.7M loan</div></div>
+          <div class="m-tile"><div class="mt-lab">UW DSCR</div><div class="mt-val num" id="mDSCR">1.35x</div><div class="mt-sub">min 1.25x</div></div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-hd"><span class="ct">10-Year NOI Projection</span><span class="cs" id="chartScenario">V2 — Base Case</span></div>
+          <svg id="noiChart" viewBox="0 0 580 170" width="100%" height="170" preserveAspectRatio="none" role="img" aria-label="10-year NOI projection">
+            <defs><linearGradient id="noiGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity="0.20"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0.01"/></linearGradient></defs>
+            <line x1="40" y1="150" x2="570" y2="150" stroke="var(--border)" stroke-width="1"/>
+            <path id="noiArea" d="" fill="url(#noiGrad)"/>
+            <polyline id="noiLine" points="" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ══════════ DEALS & SCENARIOS (Deal Room management) ══════════ -->
+      <div class="section-eyebrow" style="margin-top:28px"><span class="micro">Deals &amp; Scenarios</span></div>
+
+      <!-- Sabal Point — expanded -->
+      <div class="prop-group open" id="pg-sabal">
+        <div class="pg-head" onclick="toggleGroup('pg-sabal')">
+          <svg class="pg-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <div>
+            <div class="pg-name">Sabal Point Apartments</div>
+            <div class="pg-sub">Tampa, FL · 312 units · Built 2005</div>
+          </div>
+          <div class="pg-right">
+            <div class="pg-stat"><div class="s-lab">Scenarios</div><div class="s-val num">3</div></div>
+            <div class="pg-stat"><div class="s-lab">Going-in Cap</div><div class="s-val num">5.50%</div></div>
+            <div class="pg-stat"><div class="s-lab">Status</div><div class="s-val"><span class="status-pill st-ready">Ready</span></div></div>
+          </div>
+        </div>
+        <div class="pg-body">
+
+          <!-- V1 -->
+          <div class="scenario">
+            <div class="sc-top">
+              <span class="sc-name">In-Place</span><span class="sc-ver">V1</span>
+              <span class="status-pill st-ready">Ready</span>
+              <span style="font-size:11px;color:var(--ink-3)">Created Jul 6, 2026</span>
+              <div class="sc-actions">
+                <button class="link-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Open</button>
+                <button class="link-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>
+                <button class="link-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Duplicate</button>
+              </div>
+            </div>
+            <div class="sc-grid">
+              <div class="sc-block">
+                <div class="sb-lab">Source Documents</div>
+                <div class="inputs-list">
+                  <div class="input-row"><span class="ir-doc">T-12</span><span class="ir-meta fresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Uploaded Jul 6, 2:14 PM</span></div>
+                  <div class="input-row"><span class="ir-doc">Rent Roll</span><span class="ir-meta fresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Uploaded Jul 6, 2:15 PM</span></div>
+                  <div class="input-row"><span class="ir-doc">OM</span><span class="ir-meta fresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Uploaded Jul 6, 2:16 PM</span></div>
+                </div>
+              </div>
+              <div class="sc-block">
+                <div class="sb-lab">Key Assumptions</div>
+                <div class="assump-chips">
+                  <span class="a-chip">Rent growth 0%</span><span class="a-chip">Vacancy 5%</span><span class="a-chip">LTV 65%</span>
+                  <span class="a-chip">Exit cap 5.75%</span><span class="a-chip">Mgmt fee 3%</span><span class="a-chip">Hold 10 yr</span><span class="a-chip">No renovation</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- V2 (current) -->
+          <div class="scenario current">
+            <div class="sc-top">
+              <span class="sc-name">Base Case</span><span class="sc-ver">V2</span>
+              <span class="status-pill st-ready">Ready</span>
+              <span style="font-size:11px;color:var(--accent);font-weight:600">Viewing above</span>
+              <span style="font-size:11px;color:var(--ink-3)">Created Jul 6, 2026</span>
+              <div class="sc-actions">
+                <button class="link-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Open</button>
+                <button class="link-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>
+                <button class="link-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Duplicate</button>
+                <button class="link-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+              </div>
+            </div>
+            <div class="sc-grid">
+              <div class="sc-block">
+                <div class="sb-lab">Source Documents</div>
+                <div class="inputs-list">
+                  <div class="input-row"><span class="ir-doc">T-12</span><span class="ir-meta reuse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Reused from V1</span></div>
+                  <div class="input-row"><span class="ir-doc">Rent Roll</span><span class="ir-meta fresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Uploaded Jul 6, 4:30 PM · updated</span></div>
+                  <div class="input-row"><span class="ir-doc">OM</span><span class="ir-meta reuse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Reused from V1</span></div>
+                </div>
+              </div>
+              <div class="sc-block">
+                <div class="sb-lab">Key Assumptions</div>
+                <div class="assump-chips">
+                  <span class="a-chip">Rent growth 3%</span><span class="a-chip">Vacancy 5%</span><span class="a-chip">LTV 65%</span>
+                  <span class="a-chip">Exit cap 5.75%</span><span class="a-chip">Mgmt fee 3%</span><span class="a-chip">Hold 10 yr</span><span class="a-chip">No renovation</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- V3 -->
+          <div class="scenario">
+            <div class="sc-top">
+              <span class="sc-name">Value-Add</span><span class="sc-ver">V3</span>
+              <span class="status-pill st-draft">Draft</span>
+              <span style="font-size:11px;color:var(--ink-3)">Created Jul 7, 2026</span>
+              <div class="sc-actions">
+                <button class="link-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Open</button>
+                <button class="link-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>
+                <button class="link-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Duplicate</button>
+              </div>
+            </div>
+            <div class="sc-grid">
+              <div class="sc-block">
+                <div class="sb-lab">Source Documents</div>
+                <div class="inputs-list">
+                  <div class="input-row"><span class="ir-doc">T-12</span><span class="ir-meta reuse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Reused from V2</span></div>
+                  <div class="input-row"><span class="ir-doc">Rent Roll</span><span class="ir-meta reuse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Reused from V2</span></div>
+                  <div class="input-row"><span class="ir-doc">OM</span><span class="ir-meta reuse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Reused from V2</span></div>
+                </div>
+              </div>
+              <div class="sc-block">
+                <div class="sb-lab">Key Assumptions</div>
+                <div class="assump-chips">
+                  <span class="a-chip">Rent growth 3%</span><span class="a-chip">Vacancy 5%</span><span class="a-chip">LTV 65%</span>
+                  <span class="a-chip">Exit cap 5.75%</span><span class="a-chip">Reno 170 units @ $17.5K</span><span class="a-chip">Premium $250/mo</span><span class="a-chip">Hold 10 yr</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="add-scenario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add scenario to Sabal Point Apartments</button>
+        </div>
+      </div>
+
+      <!-- Harbor Crossing — collapsed -->
+      <div class="prop-group" id="pg-harbor">
+        <div class="pg-head" onclick="toggleGroup('pg-harbor')">
+          <svg class="pg-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <div><div class="pg-name">Harbor Crossing</div><div class="pg-sub">Charleston, SC · 264 units · Built 2011</div></div>
+          <div class="pg-right">
+            <div class="pg-stat"><div class="s-lab">Scenarios</div><div class="s-val num">2</div></div>
+            <div class="pg-stat"><div class="s-lab">Going-in Cap</div><div class="s-val num">5.40%</div></div>
+            <div class="pg-stat"><div class="s-lab">Status</div><div class="s-val"><span class="status-pill st-ready">Ready</span></div></div>
+          </div>
+        </div>
+        <div class="pg-body">
+          <div style="font-size:12.5px;color:var(--ink-2)">2 scenarios · click Open on a scenario to load it into the overview above.</div>
+          <button class="add-scenario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add scenario to Harbor Crossing</button>
+        </div>
+      </div>
+
+      <!-- Cypress Bend — collapsed -->
+      <div class="prop-group" id="pg-cypress">
+        <div class="pg-head" onclick="toggleGroup('pg-cypress')">
+          <svg class="pg-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <div><div class="pg-name">Cypress Bend</div><div class="pg-sub">Savannah, GA · 220 units · Built 2003</div></div>
+          <div class="pg-right">
+            <div class="pg-stat"><div class="s-lab">Scenarios</div><div class="s-val num">1</div></div>
+            <div class="pg-stat"><div class="s-lab">Going-in Cap</div><div class="s-val num">5.60%</div></div>
+            <div class="pg-stat"><div class="s-lab">Status</div><div class="s-val"><span class="status-pill st-draft">Draft</span></div></div>
+          </div>
+        </div>
+        <div class="pg-body">
+          <div style="font-size:12.5px;color:var(--ink-2)">1 scenario · underwriting not yet generated.</div>
+          <button class="add-scenario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add scenario to Cypress Bend</button>
+        </div>
+      </div>
+
+      <!-- Brookside Station — collapsed -->
+      <div class="prop-group" id="pg-brookside">
+        <div class="pg-head" onclick="toggleGroup('pg-brookside')">
+          <svg class="pg-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <div><div class="pg-name">Brookside Station</div><div class="pg-sub">Nashville, TN · 300 units · Built 2008</div></div>
+          <div class="pg-right">
+            <div class="pg-stat"><div class="s-lab">Scenarios</div><div class="s-val num">2</div></div>
+            <div class="pg-stat"><div class="s-lab">Going-in Cap</div><div class="s-val num">5.20%</div></div>
+            <div class="pg-stat"><div class="s-lab">Status</div><div class="s-val"><span class="status-pill st-ready">Ready</span></div></div>
+          </div>
+        </div>
+        <div class="pg-body">
+          <div style="font-size:12.5px;color:var(--ink-2)">2 scenarios · click Open on a scenario to load it into the overview above.</div>
+          <button class="add-scenario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add scenario to Brookside Station</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  var SCEN = {
+    v1: { name:'V1 — In-Place', irr:'11.8%', em:'1.9x', cap:'5.50%', noi:'$4.29M', dscr:'1.30x',
+          band:'warn', bandTxt:'<b>Meets the floor, misses the hurdle.</b> 11.8% IRR is below the 12% target; equity multiple 1.9x below 2.0x.',
+          noiSeries:[4.29,4.33,4.37,4.41,4.45,4.49,4.53,4.57,4.61,4.65] },
+    v2: { name:'V2 — Base Case', irr:'14.2%', em:'2.1x', cap:'5.50%', noi:'$4.45M', dscr:'1.35x',
+          band:'ok', bandTxt:'<b>Clears fund targets.</b> 14.2% levered IRR and 2.1x equity multiple beat the 12% / 2.0x hurdles.',
+          noiSeries:[4.45,4.63,4.82,5.02,5.22,5.43,5.65,5.88,6.12,6.36] },
+    v3: { name:'V3 — Value-Add', irr:'16.5%', em:'2.4x', cap:'5.50%', noi:'$4.40M', dscr:'1.28x',
+          band:'ok', bandTxt:'<b>Exceeds targets — higher execution risk.</b> 16.5% IRR / 2.4x on a 170-unit renovation; DSCR tightens to 1.28x.',
+          noiSeries:[4.40,4.75,5.25,5.70,6.05,6.35,6.60,6.85,7.10,7.35] }
+  };
+  var Y_MIN = 4.0, Y_MAX = 7.5, X0 = 40, X1 = 570, Y0 = 150, Y1 = 20;
+  function pt(i, v) {
+    var x = X0 + (X1 - X0) * (i / 9);
+    var y = Y0 - (v - Y_MIN) / (Y_MAX - Y_MIN) * (Y0 - Y1);
+    return [x, y];
+  }
+  function renderNOI(series) {
+    var pts = series.map(function(v, i){ return pt(i, v); });
+    var line = pts.map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+    var area = 'M' + pts[0][0].toFixed(1) + ',' + pts[0][1].toFixed(1) + ' ' +
+      pts.slice(1).map(function(p){ return 'L' + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') +
+      ' L' + pts[9][0].toFixed(1) + ',' + Y0 + ' L' + pts[0][0].toFixed(1) + ',' + Y0 + ' Z';
+    document.getElementById('noiLine').setAttribute('points', line);
+    document.getElementById('noiArea').setAttribute('d', area);
+  }
+  function swapScenario(key) {
+    var s = SCEN[key];
+    document.getElementById('mIRR').textContent = s.irr;
+    document.getElementById('mEM').textContent = s.em;
+    document.getElementById('mCap').textContent = s.cap;
+    document.getElementById('mNOI').textContent = s.noi;
+    document.getElementById('mDSCR').textContent = s.dscr;
+    document.getElementById('chartScenario').textContent = s.name;
+    var band = document.getElementById('returnsBand');
+    band.classList.toggle('warn', s.band === 'warn');
+    document.getElementById('returnsTxt').innerHTML = s.bandTxt;
+    renderNOI(s.noiSeries);
+  }
+  function toggleGroup(id) { document.getElementById(id).classList.toggle('open'); }
+  renderNOI(SCEN.v2.noiSeries);
+</script>
