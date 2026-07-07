@@ -1,0 +1,63 @@
+<title>Trilogy — Use-Case Design Docs</title>
+<style>
+  :root {
+    --canvas:#F6F8F6; --surface:#FFFFFF; --surface-2:#FAFCFA; --border:#E4E8E4; --border-strong:#D5DAD5;
+    --ink:#16201A; --ink-2:#5C685F; --ink-3:#8A948C;
+    --accent:#0A8F3C; --accent-strong:#08A715; --accent-tint:#EAF7EE;
+    --shadow:0 1px 2px rgba(20,40,25,.05), 0 6px 22px rgba(20,40,25,.06);
+    --font:'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --canvas:#0E1411; --surface:#161D19; --surface-2:#1B241F; --border:#2A342D; --border-strong:#3A463D;
+      --ink:#E7EFE9; --ink-2:#A6B2AA; --ink-3:#77837B; --accent:#33D17A; --accent-strong:#2FC471; --accent-tint:#16281E;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 22px rgba(0,0,0,.3); }
+  }
+  :root[data-theme="light"] { --canvas:#F6F8F6; --surface:#FFFFFF; --surface-2:#FAFCFA; --border:#E4E8E4; --border-strong:#D5DAD5; --ink:#16201A; --ink-2:#5C685F; --ink-3:#8A948C; --accent:#0A8F3C; --accent-strong:#08A715; --accent-tint:#EAF7EE; }
+  :root[data-theme="dark"] { --canvas:#0E1411; --surface:#161D19; --surface-2:#1B241F; --border:#2A342D; --border-strong:#3A463D; --ink:#E7EFE9; --ink-2:#A6B2AA; --ink-3:#77837B; --accent:#33D17A; --accent-strong:#2FC471; --accent-tint:#16281E; }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--canvas); color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased; line-height:1.55; }
+  .wrap { max-width:760px; margin:0 auto; padding:56px 24px 72px; }
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:36px; }
+  .logo { width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#08A715,#00C853); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:17px; }
+  .brand b { font-size:16px; font-weight:700; }
+  .eyebrow { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+  h1 { font-size:32px; font-weight:800; letter-spacing:-.8px; margin:0 0 10px; text-wrap:balance; }
+  .lede { font-size:15px; color:var(--ink-2); max-width:60ch; margin:0 0 36px; }
+  .cards { display:grid; gap:16px; }
+  a.card { display:block; text-decoration:none; color:inherit; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:22px 24px; box-shadow:var(--shadow); transition:border-color .15s ease, transform .15s ease; }
+  a.card:hover { border-color:color-mix(in srgb, var(--accent) 45%, transparent); transform:translateY(-2px); }
+  a.card:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  .card-top { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .emoji { font-size:22px; }
+  .card-title { font-size:18px; font-weight:700; }
+  .status { margin-left:auto; font-size:10.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--accent); background:var(--accent-tint); border:1px solid color-mix(in srgb,var(--accent) 25%,transparent); border-radius:12px; padding:3px 9px; }
+  .card-desc { font-size:13.5px; color:var(--ink-2); }
+  .arrow { margin-top:12px; font-size:13px; font-weight:600; color:var(--accent); display:inline-flex; align-items:center; gap:6px; }
+  .arrow svg { width:15px; height:15px; }
+  .foot { margin-top:40px; font-size:12px; color:var(--ink-3); border-top:1px solid var(--border); padding-top:18px; }
+  @media (prefers-reduced-motion: reduce) { a.card { transition:none; } }
+</style>
+
+<div class="wrap">
+  <div class="brand"><div class="logo">T</div><b>Trilogy RE × Outcome</b></div>
+  <div class="eyebrow">Use-Case Design Docs</div>
+  <h1>Automated Underwriting App — Tab Mockups</h1>
+  <p class="lede">Target designs for the Trilogy proforma-generation app, tab by tab. Each page is a self-contained, interactive mockup for review with the dev team. Illustrative sample data — thresholds and figures are pending Paul's confirmation.</p>
+
+  <div class="cards">
+    <a class="card" href="deal-thesis-mockup.html">
+      <div class="card-top"><span class="emoji">🎯</span><span class="card-title">Deal Screening</span><span class="status">Reviewed</span></div>
+      <div class="card-desc">The pre-underwrite go/no-go screen: the Deal Thesis (buy-box) criteria, auto-computed napkin metrics, a GO / WATCH / PASS verdict, hand-off to the Deal Room, and a searchable log of previously screened deals.</div>
+      <span class="arrow">Open mockup <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="card" href="deal-room-mockup.html">
+      <div class="card-top"><span class="emoji">🏢</span><span class="card-title">Deal Room</span><span class="status">In review</span></div>
+      <div class="card-desc">Consolidates the old Dashboard: portfolio overview and scenario-driven deal metrics up top, then create-and-manage deals & scenarios below — with per-file upload timestamps, input reuse, and editable scenarios grouped by property.</div>
+      <span class="arrow">Open mockup <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </div>
+
+  <div class="foot">More tabs (T-12, Rent Roll, Pro Forma, Compare) to follow as the review continues.</div>
+</div>
