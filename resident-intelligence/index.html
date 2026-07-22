@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resident Intelligence — Screen Mockups</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  .hero { max-width:900px; margin-bottom:26px; }
+  .hero h1 { font-size:31px; font-weight:780; letter-spacing:-.9px; margin:0 0 9px; }
+  .hero p { font-size:14.5px; color:var(--ink-2); margin:0 0 6px; }
+  .eyebrow { font-size:11px; font-weight:750; letter-spacing:1.1px; text-transform:uppercase; color:var(--accent); margin-bottom:9px; }
+  .screens { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:1080px){ .screens { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:720px){ .screens { grid-template-columns:1fr; } }
+  a.scard { display:block; text-decoration:none; color:inherit; background:var(--surface);
+    border:1px solid var(--border); border-radius:var(--radius); padding:17px 18px;
+    box-shadow:var(--shadow-sm); transition:border-color .15s, transform .15s; }
+  a.scard:hover { border-color:color-mix(in srgb,var(--accent) 45%,transparent); transform:translateY(-2px); }
+  a.scard:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  .snum { font-size:10.5px; font-weight:750; letter-spacing:.6px; color:var(--accent); margin-bottom:6px; }
+  .stitle { font-size:15.5px; font-weight:700; margin-bottom:5px; }
+  .sdesc { font-size:12.5px; color:var(--ink-2); line-height:1.55; }
+  .swatch { height:38px; border-radius:8px; margin-bottom:6px; }
+  .swrap { font-size:10.5px; color:var(--ink-3); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .sw-name { font-size:11px; font-weight:650; color:var(--ink); margin-bottom:1px; }
+  h2.sec { font-size:17px; font-weight:750; letter-spacing:-.3px; margin:34px 0 5px; }
+  p.seclede { font-size:13px; color:var(--ink-2); margin:0 0 15px; max-width:88ch; }
+  .rules { display:grid; grid-template-columns:repeat(2,1fr); gap:11px; }
+  @media (max-width:900px){ .rules { grid-template-columns:1fr; } }
+  .rule-i { padding:12px 14px; border:1px solid var(--border); border-radius:11px; background:var(--surface); }
+  .rule-i b { font-size:12.5px; }
+  .rule-i p { font-size:12px; color:var(--ink-2); margin:4px 0 0; line-height:1.55; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side"></aside>
+  <div class="main">
+    <header class="top"><div class="top-right"></div></header>
+    <div class="page">
+
+      <div class="hero">
+        <div class="eyebrow">Trilogy × Outcome · Use-case design docs</div>
+        <h1>Resident Intelligence App — screen mockups</h1>
+        <p>Six interactive screens for the Riverset resident-data build. Each is self-contained and
+           reflects the schema, coverage and extraction limits established in the implementation plan.</p>
+        <p style="color:var(--ink-3);font-size:13px">
+           Turn on <b style="color:var(--ink-2)">Spec mode</b> (top right of any screen) to reveal the data
+           binding behind every component — source entity, field, document and measured coverage.</p>
+      </div>
+
+      <div class="notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 9v5M12 17.5v.5M10.3 3.9 2.5 18a1.7 1.7 0 0 0 1.5 2.6h16a1.7 1.7 0 0 0 1.5-2.6L13.7 3.9a1.7 1.7 0 0 0-3 0z"/></svg>
+        <div><b>Data in these mockups.</b> Aggregate figures — funnel counts, employer mix, income and origin
+        distributions — are real, measured from the Riverset archive. <b>All person-level detail is
+        synthetic.</b> Names, emails, addresses and identifiers are fabricated; the live archive contains
+        full DOBs, licence numbers and partial SSNs that must never reach a public surface.</div>
+      </div>
+
+      <div class="screens">
+        <a class="scard" href="01-portfolio-overview.html">
+          <div class="snum">SCREEN 01</div>
+          <div class="stitle">Portfolio Overview</div>
+          <div class="sdesc">The landing view. Funnel, credit distribution, employer concentration, income
+            and origin at a glance. One hero figure, four stat tiles, six panels.</div>
+        </a>
+        <a class="scard" href="02-cohort-explorer.html">
+          <div class="snum">SCREEN 02</div>
+          <div class="stitle">Cohort Explorer</div>
+          <div class="sdesc">The primary analytical surface. Define a population with one filter row, then
+            slice it by any demographic or credit attribute. Saved cohorts feed screen 5.</div>
+        </a>
+        <a class="scard" href="03-origin-flow-map.html">
+          <div class="snum">SCREEN 03</div>
+          <div class="stitle">Origin Flow Map</div>
+          <div class="sdesc">Where applicants moved from. Dual-scale map with a distance-band rail, plus a
+            conversion panel answering whether distance predicts a lease.</div>
+        </a>
+        <a class="scard" href="04-person-profile.html">
+          <div class="snum">SCREEN 04</div>
+          <div class="stitle">Person Profile</div>
+          <div class="sdesc">One human: identity, employment, income stated vs verified, credit, tenancy
+            timeline and full source-document provenance for every field.</div>
+        </a>
+        <a class="scard" href="05-segment-comparison.html">
+          <div class="snum">SCREEN 05</div>
+          <div class="stitle">Segment Comparison</div>
+          <div class="sdesc">Two cohorts side by side with deltas on every attribute — “renewed” versus
+            “left at first lease end”, and what separates them.</div>
+        </a>
+        <a class="scard" href="06-data-quality-console.html">
+          <div class="snum">SCREEN 06</div>
+          <div class="stitle">Data Quality Console</div>
+          <div class="sdesc">Pipeline health, per-field coverage, document parse rates and the open data
+            issues. Coverage is a first-class metric, not diagnostics.</div>
+        </a>
+      </div>
+
+      <!-- ================= DESIGN SYSTEM ================================= -->
+      <h2 class="sec">Design system</h2>
+      <p class="seclede">Chrome tokens follow the existing Trilogy × Outcome doc set. Chart colour is a
+        separately validated palette — every ramp below passed the contrast, chroma, colour-vision and
+        lightness-band checks against both the light and dark surfaces.</p>
+
+      <div class="grid g2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-h"><div><h3>Categorical — identity</h3>
+            <p class="card-sub">Fixed order, never cycled. Max three on one plot.</p></div></div>
+          <div class="grid g3" style="gap:10px">
+            <div><div class="swatch" style="background:var(--s1)"></div>
+              <div class="sw-name">Slot 1 · blue</div><div class="swrap">#2a78d6 / #3987e5</div></div>
+            <div><div class="swatch" style="background:var(--s2)"></div>
+              <div class="sw-name">Slot 2 · orange</div><div class="swrap">#eb6834 / #d95926</div></div>
+            <div><div class="swatch" style="background:var(--s3)"></div>
+              <div class="sw-name">Slot 3 · aqua</div><div class="swrap">#1baf7a / #199e70</div></div>
+          </div>
+          <div style="font-size:11.5px;color:var(--ink-3);margin-top:12px;line-height:1.55">
+            Worst all-pairs colour-vision separation ΔE 9.2 light / 9.4 dark against a ≥8 target.
+            A fourth series folds into “Other” or facets — it is never a generated hue.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div><h3>Ordinal — ordered bands</h3>
+            <p class="card-sub">One hue, light→dark. Distance bands, credit bands.</p></div></div>
+          <div style="display:flex;gap:5px">
+            <div style="flex:1"><div class="swatch" style="background:var(--o1)"></div><div class="swrap">o1</div></div>
+            <div style="flex:1"><div class="swatch" style="background:var(--o2)"></div><div class="swrap">o2</div></div>
+            <div style="flex:1"><div class="swatch" style="background:var(--o3)"></div><div class="swrap">o3</div></div>
+            <div style="flex:1"><div class="swatch" style="background:var(--o4)"></div><div class="swrap">o4</div></div>
+            <div style="flex:1"><div class="swatch" style="background:var(--o5)"></div><div class="swrap">o5</div></div>
+          </div>
+          <hr class="rule">
+          <div class="card-h"><div><h3 style="font-size:12.5px">Status — never themed, never a series</h3></div></div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <span class="badge ok">Good</span><span class="badge warn">Partial</span>
+            <span class="badge crit">Low / blocking</span>
+            <span class="badge">Neutral</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--ink-3);margin-top:12px;line-height:1.55">
+            Status colours always ship with an icon or a label — colour never carries the meaning alone.
+            Grey is reserved for <b>“no data”</b> and is not a series colour.
+          </div>
+        </div>
+      </div>
+
+      <h2 class="sec">Rules the build must hold</h2>
+      <p class="seclede">These are not stylistic preferences — each one exists because breaking it produces a
+        chart that misleads.</p>
+      <div class="rules">
+        <div class="rule-i"><b>One axis, always.</b>
+          <p>Never two y-scales on one plot. Two measures of different scale become two charts, small
+             multiples, or both indexed to a common base.</p></div>
+        <div class="rule-i"><b>Colour follows the entity, not its rank.</b>
+          <p>Filtering a series out must not repaint the survivors. Segment A stays blue whether or not it
+             is the larger cohort.</p></div>
+        <div class="rule-i"><b>One filter row, above everything it scopes.</b>
+          <p>Never a filter inside a chart card. Every panel re-renders against the same slice.</p></div>
+        <div class="rule-i"><b>Every chart has a table view.</b>
+          <p>The WCAG-clean twin. Tooltips enhance, never gate — no value is reachable only by hover, and
+             keyboard focus shows what hover shows.</p></div>
+        <div class="rule-i"><b>Label selectively.</b>
+          <p>A number on every point is chaos. Label the extreme, the endpoint, or the one series the story
+             is about; the axis, legend and tooltip carry the rest.</p></div>
+        <div class="rule-i"><b>Coverage travels with the number.</b>
+          <p>A distribution over 54% of the population is a different claim from one over 100%. Say which,
+             on the chart, every time.</p></div>
+        <div class="rule-i"><b>Blank is a state, not a zero.</b>
+          <p>“Not captured” must render as itself. 19% of folders have no usable document and several fields
+             are absent by design — an empty cell that reads as zero is a bug.</p></div>
+        <div class="rule-i"><b>Marks stay thin, chrome stays quiet.</b>
+          <p>Bars ≤24px with a 4px rounded data-end, 2px lines, hairline solid gridlines one step off the
+             surface. The data is the only thing allowed to be loud.</p></div>
+      </div>
+
+      <h2 class="sec">Notes for the build</h2>
+      <div class="rules">
+        <div class="rule-i"><b>Shell &amp; tokens</b>
+          <p><code style="font-size:11px">assets/app.css</code> holds every token, component and both theme
+             scopes. <code style="font-size:11px">assets/app.js</code> renders the nav, wires theme,
+             spec mode, tooltips and table toggles. No dependencies, no build step, no external requests.</p></div>
+        <div class="rule-i"><b>Charts are inline SVG</b>
+          <p>Deliberately no charting library — the geometry is legible in the source so the specs
+             (bar cap, rounded end, surface gap, hit-target size) can be read directly off the markup.</p></div>
+        <div class="rule-i"><b>Dark mode is selected, not flipped</b>
+          <p>Dark steps are chosen for the dark surface and validated as their own set, declared under both
+             the media query and the <code style="font-size:11px">data-theme</code> scope so the toggle wins
+             in both directions.</p></div>
+        <div class="rule-i"><b>These are mockups, not components</b>
+          <p>The markup is for reading and agreeing, not for lifting into production. Numbers are literals;
+             in the real app every one is a query against the schema in section B of the implementation plan.</p></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+  shell('', 'Overview &amp; design system');
+  document.querySelectorAll('.nav a').forEach(a => {
+    if (a.getAttribute('href') === 'index.html') a.classList.add('on');
+  });
+</script>
+</body>
+</html>

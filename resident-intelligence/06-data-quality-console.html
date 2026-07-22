@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Quality Console — Trilogy Resident Intelligence</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  .covrow { display:grid; grid-template-columns:230px 1fr 62px 92px; gap:12px; align-items:center;
+            padding:8px 0; border-bottom:1px solid var(--border); }
+  .covrow:last-child { border-bottom:0; }
+  .covrow .fk { font-size:12.5px; font-weight:600; }
+  .covrow .fs { font-size:10.5px; color:var(--ink-3); }
+  .covrow .pc { text-align:right; font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .pipe { display:flex; gap:0; align-items:stretch; flex-wrap:wrap; }
+  .pstage { flex:1; min-width:104px; padding:11px 12px; border:1px solid var(--border);
+            border-right:0; background:var(--surface-2); }
+  .pstage:first-child { border-radius:10px 0 0 10px; }
+  .pstage:last-child { border-radius:0 10px 10px 0; border-right:1px solid var(--border); }
+  .pstage .pn { font-size:10px; font-weight:750; color:var(--ink-3); letter-spacing:.5px; }
+  .pstage .pt { font-size:12px; font-weight:650; margin:3px 0 5px; }
+  .pstage .pv { font-size:15px; font-weight:750; font-variant-numeric:tabular-nums; }
+  .pstage.ok  { background:color-mix(in srgb,var(--ok) 9%,var(--surface)); }
+  .pstage.wa  { background:color-mix(in srgb,var(--warn) 13%,var(--surface)); }
+  .issue { display:grid; grid-template-columns:22px 1fr auto; gap:11px; align-items:flex-start;
+           padding:11px 0; border-bottom:1px solid var(--border); }
+  .issue:last-child { border-bottom:0; }
+  .issue .it { font-size:12.5px; font-weight:650; margin-bottom:2px; }
+  .issue .id { font-size:11.5px; color:var(--ink-2); line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side"></aside>
+  <div class="main">
+    <header class="top"><div class="top-right"></div></header>
+    <div class="page">
+
+      <div class="page-head">
+        <h1>Data Quality Console</h1>
+        <p>What the extraction actually produced, and what it could not. Non-negotiable — 19% of folders
+           contain no usable document, and the app has to be honest about it.</p>
+      </div>
+
+      <div class="specbar">
+        <div><b>This screen is a feature, not diagnostics.</b> Coverage is a first-class metric: a
+        credit-score distribution over 54% of the population is a different claim from one over 100%.
+        Every chart elsewhere in the app reads its coverage figure from here.</div>
+      </div>
+
+      <!-- ================= PIPELINE HEALTH =============================== -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-h"><div><h3>Extraction pipeline</h3>
+          <p class="card-sub">Last full run · 25 May 2026 · 41,217 documents inspected.</p></div>
+          <div class="tools"><span class="badge ok">Healthy</span></div></div>
+        <div class="pipe" id="pipe"></div>
+        <div class="anno"><span class="a-h">Binding</span>
+          Stage counters come from the Temporal workflow's per-activity result.
+          <b>Every stage is idempotent and re-runnable per folder</b>, so a failed extractor can be
+          replayed without a full re-crawl.</div>
+      </div>
+
+      <div class="grid g-2-1" style="margin-bottom:14px">
+
+        <!-- ================= FIELD COVERAGE ============================== -->
+        <div class="card">
+          <div class="card-h">
+            <div><h3>Field coverage</h3>
+            <p class="card-sub">Share of the 1,555 records where the field has a value.</p></div>
+            <div class="tools">
+              <select class="sel" style="height:24px;font-size:11px">
+                <option>All fields</option><option>Demographic</option><option>Credit</option>
+              </select>
+            </div>
+          </div>
+          <div id="cov"></div>
+          <div class="anno"><span class="a-h">Design rule</span>
+            Bar colour is <b>status, not category</b> — good / warning / critical against a coverage
+            threshold, shipped with the numeric label so colour never carries the meaning alone.
+            Anything under 40% must be labelled in the UI wherever it is charted.</div>
+        </div>
+
+        <!-- ================= DOC PARSE RATE ============================== -->
+        <div class="card">
+          <div class="card-h"><div><h3>Parse rate by document</h3>
+            <p class="card-sub">Text layer present and fields extracted.</p></div></div>
+          <div id="parse"></div>
+          <div class="anno"><span class="a-h">Measured, not assumed</span>
+            These rates come from sampling real documents, not from guesses. Snappt's low body rate is
+            why the <b>fraud verdict is read from the filename</b> instead.</div>
+        </div>
+      </div>
+
+      <!-- ================= OPEN ISSUES =================================== -->
+      <div class="grid g2">
+
+        <div class="card">
+          <div class="card-h"><div><h3>Open data issues</h3>
+            <p class="card-sub">Ranked by how much analysis they block.</p></div></div>
+          <div id="issues"></div>
+          <div class="anno"><span class="a-h">Triage</span>
+            Identity resolution is the only <b>blocking</b> issue — every tenure, renewal and lifetime
+            figure is wrong until it is done. The rest degrade coverage but do not corrupt results.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div><h3>Records needing review</h3>
+            <p class="card-sub">Low-confidence classifications and unresolved merges.</p></div>
+            <div class="tools"><button class="mini">Open queue</button></div></div>
+          <div id="review"></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>tenancy.classification_confidence</code> — the funnel classifier emits High / Medium / Low.
+            <b>375 records are Medium or Low</b> and should be document-verified before they appear in a
+            client-facing figure.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+shell('quality', 'Data Quality');
+
+/* ---------------------------------------------------------- PIPELINE ---- */
+const PIPE = [
+  { n:'STAGE 1', t:'Inventory',       v:'41,217', s:'documents', c:'ok' },
+  { n:'STAGE 2', t:'Classify folder', v:'1,555',  s:'folders',   c:'ok' },
+  { n:'STAGE 3', t:'Classify doc',    v:'9,140',  s:'in scope',  c:'ok' },
+  { n:'STAGE 4', t:'Text extract',    v:'8,431',  s:'92% ok',    c:'ok' },
+  { n:'STAGE 5', t:'Field extract',   v:'1,261',  s:'81% reach', c:'ok' },
+  { n:'STAGE 6', t:'Normalise',       v:'1,261',  s:'complete',  c:'ok' },
+  { n:'STAGE 7', t:'Identity merge',  v:'455',    s:'pending',   c:'wa' },
+];
+document.getElementById('pipe').innerHTML = PIPE.map(p => `
+  <div class="pstage ${p.c}" tabindex="0" data-tip="<div class='t-h'>${p.t}</div>
+      <div class='t-r'><span>${p.s}</span><b>${p.v}</b></div>">
+    <div class="pn">${p.n}</div><div class="pt">${p.t}</div>
+    <div class="pv">${p.v}</div>
+    <div style="font-size:10.5px;color:var(--ink-3)">${p.s}</div>
+  </div>`).join('');
+
+/* ---------------------------------------------------------- COVERAGE --- */
+const COV = [
+  { k:'Full name',            f:'person.full_name',                  v:81 },
+  { k:'Email / phone',        f:'person.email · phone',              v:71 },
+  { k:'Marital status',       f:'person.marital_status',             v:71 },
+  { k:'Employer & job title', f:'employment.employer_name',          v:71 },
+  { k:'Stated income',        f:'employment.stated_monthly_income',  v:71 },
+  { k:'Gov ID state',         f:'person.gov_id_state',               v:64 },
+  { k:'Address history',      f:'residence_history.address',         v:60 },
+  { k:'Credit score',         f:'credit_profile.score',              v:54 },
+  { k:'Vehicles',             f:'COUNT(vehicle)',                    v:52 },
+  { k:'Origin ZIP',           f:'residence_history.origin_zip',      v:50 },
+  { k:'Screening decision',   f:'credit_profile.decision',           v:43 },
+  { k:'Fraud verdict',        f:'income_verification.fraud_result',  v:25 },
+  { k:'Bank-verified income', f:'income_verification.verified_gross',v:16 },
+  { k:'Date of birth',        f:'person.dob',                        v:9  },
+  { k:'Gender · occupants · pets', f:'— not captured —',             v:0  },
+];
+const cls = v => v >= 60 ? 'ok' : v >= 35 ? 'warn' : 'crit';
+document.getElementById('cov').innerHTML = COV.map(c => `
+  <div class="covrow" tabindex="0" data-tip="<div class='t-h'>${c.k}</div>
+      <div class='t-r'><span>Coverage</span><b>${c.v}%</b></div>
+      <div class='t-r'><span>Records</span><b>${Math.round(15.55 * c.v)}</b></div>">
+    <div><div class="fk">${c.k}</div><div class="fs">${c.f}</div></div>
+    <div class="meter"><i class="${cls(c.v)}" style="width:${c.v}%"></i></div>
+    <div class="pc">${c.v}%</div>
+    <div><span class="badge ${cls(c.v) === 'ok' ? 'ok' : cls(c.v) === 'warn' ? 'warn' : 'crit'}">
+      ${c.v >= 60 ? 'Good' : c.v >= 35 ? 'Partial' : c.v > 0 ? 'Low' : 'None'}</span></div>
+  </div>`).join('');
+
+/* ------------------------------------------------------------- PARSE --- */
+const PARSE = [
+  { k:'RentCafe Application', v:100, n:'1,112 folders' },
+  { k:'Screening Report',     v:93,  n:'813 folders' },
+  { k:'Credit Report',        v:91,  n:'802 folders' },
+  { k:'Snappt — filename',    v:83,  n:'476 folders' },
+  { k:'Snappt — body figures',v:53,  n:'476 folders' },
+];
+document.getElementById('parse').innerHTML = PARSE.map(p => `
+  <div style="margin-bottom:13px" tabindex="0" data-tip="<div class='t-h'>${p.k}</div>
+      <div class='t-r'><span>Parse rate</span><b>${p.v}%</b></div><div class='t-r'><span>Reach</span><b>${p.n}</b></div>">
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+      <span style="font-size:12px;font-weight:600">${p.k}</span>
+      <span style="font-size:12px;font-weight:700;font-variant-numeric:tabular-nums">${p.v}%</span>
+    </div>
+    <div class="meter"><i class="${cls(p.v)}" style="width:${p.v}%"></i></div>
+    <div style="font-size:10.5px;color:var(--ink-3);margin-top:3px">${p.n}</div>
+  </div>`).join('') +
+  `<div style="font-size:11.5px;color:var(--ink-3);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);line-height:1.55">
+     No OCR in phase 1. Documents without a text layer are flagged, not processed.</div>`;
+
+/* ------------------------------------------------------------ ISSUES --- */
+const ISSUES = [
+  { sev:'crit', t:'455 folders carry two Yardi tenant IDs',
+    d:'A platform migration in mid-2025 re-keyed every long-tenured resident. Until legacy and post-migration IDs are merged on unit + surname + billing continuity, tenure and renewal counts are wrong.',
+    b:'Blocks release' },
+  { sev:'warn', t:'86 folders have no extractable document',
+    d:'Long-tenured residents predating RentCafe, plus orphan folders. No demographic or credit data exists for them at any price.',
+    b:'Coverage' },
+  { sev:'warn', t:'Origin ZIP resolves for only ~50% of applications',
+    d:'The two RentCafe layouts format addresses differently. Both parser branches are written; the residual is genuinely absent from the source.',
+    b:'Coverage' },
+  { sev:'warn', t:'Cross-unit document contamination',
+    d:'Some folders contain documents belonging to other units. Validate the unit code inside each document against the folder name and route mismatches to review.',
+    b:'Accuracy' },
+  { sev:'ok', t:'29 corporate lessees isolated',
+    d:'Folders named INC / MOTORS / CONSULTANTS / CORPORATE HOUSING / SORORITY carry business credit files. Flagged and excluded from person-level aggregates.',
+    b:'Resolved' },
+];
+const SEVCOL = { crit:'var(--crit)', warn:'var(--warn)', ok:'var(--ok)' };
+document.getElementById('issues').innerHTML = ISSUES.map(i => `
+  <div class="issue">
+    <span style="width:9px;height:9px;border-radius:50%;background:${SEVCOL[i.sev]};margin-top:5px"></span>
+    <div><div class="it">${i.t}</div><div class="id">${i.d}</div></div>
+    <span class="badge ${i.sev === 'crit' ? 'crit' : i.sev === 'warn' ? 'warn' : 'ok'}">${i.b}</span>
+  </div>`).join('');
+
+/* ------------------------------------------------------------ REVIEW --- */
+const REV = [
+  { k:'High confidence',   v:1180, c:'var(--ok)' },
+  { k:'Medium confidence', v:172,  c:'var(--warn)' },
+  { k:'Low confidence',    v:203,  c:'var(--crit)' },
+];
+const RT = 1555;
+document.getElementById('review').innerHTML = `
+  <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;margin-bottom:14px">
+    ${REV.map(r => `<span style="width:${100 * r.v / RT}%;background:${r.c}"></span>`).join('')}
+  </div>` +
+  REV.map(r => `
+  <div style="display:flex;align-items:center;gap:10px;padding:7px 0" tabindex="0"
+       data-tip="<div class='t-h'>${r.k}</div><div class='t-r'><span>Records</span><b>${fmt(r.v)}</b></div>">
+    <span class="keydot" style="background:${r.c};margin:0"></span>
+    <span style="font-size:12.5px;color:var(--ink-2);flex:1">${r.k}</span>
+    <span style="font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums">${fmt(r.v)}</span>
+    <span style="font-size:11px;color:var(--ink-3);width:42px;text-align:right">${(100 * r.v / RT).toFixed(0)}%</span>
+  </div>`).join('') +
+  `<div style="font-size:11.5px;color:var(--ink-3);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);line-height:1.55">
+     375 records (24%) are Medium or Low confidence. They are classified from filename evidence alone and
+     should be document-verified before appearing in any client-facing figure.</div>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio Overview — Trilogy Resident Intelligence</title>
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side"></aside>
+  <div class="main">
+    <header class="top"><div class="top-right"></div></header>
+    <div class="page">
+
+      <div class="page-head">
+        <h1>Portfolio Overview</h1>
+        <p>Every person who applied to or lived at Riverset, in one view — who they are, what they earn,
+           what their credit looks like, and where they stopped in the leasing funnel.</p>
+      </div>
+
+      <div class="specbar">
+        <div><b>Spec mode is on.</b> Dashed blue blocks show the data binding behind each component —
+        source entity and field, the document it is extracted from, and measured coverage.
+        Field names match the <b>P0 Fields (5 Docs)</b> tab; entities match section B of the Implementation Plan.</div>
+      </div>
+
+      <!-- ================= FILTER ROW — one row, scopes everything below ==== -->
+      <div class="filters">
+        <span class="fl">Filter</span>
+        <select class="sel" id="fStage">
+          <option>All funnel stages</option>
+          <option>Never leased (stages 1–4)</option>
+          <option>Live residents (stages 5–7)</option>
+          <option>Past residents (stage 8)</option>
+        </select>
+        <select class="sel"><option>All application years</option><option>2026</option><option>2025</option><option>2024</option><option>2023 &amp; earlier</option></select>
+        <select class="sel"><option>All unit types</option><option>Studio</option><option>1 bed</option><option>2 bed</option><option>3 bed</option></select>
+        <span class="chip on">Individuals only <span class="x">×</span></span>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--ink-3)">1,555 records · export 25 May 2026</span>
+      </div>
+
+      <!-- ================= ROW 1 — hero + stat tiles ======================= -->
+      <div class="grid g4" style="margin-bottom:14px">
+        <div class="card stat">
+          <div class="lbl">People in the archive</div>
+          <div class="val hero">1,555</div>
+          <div class="sub">across 41,217 source documents</div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>COUNT(person)</code> where <code>entity_type = 'individual'</code>.
+            Folder count from the Drive inventory; <b>29 corporate lessees excluded</b> by the
+            <code>corporate_lessee_flag</code> rule.</div>
+        </div>
+        <div class="card stat">
+          <div class="lbl">Live residents</div>
+          <div class="val">633</div>
+          <div class="sub">498 current · 111 on notice · 24 moving in</div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>tenancy.funnel_stage IN (5,6,7)</code>. Recomputed at query time from lease dates —
+            <b>never stored frozen.</b></div>
+        </div>
+        <div class="card stat">
+          <div class="lbl">Applied, never leased</div>
+          <div class="val">423</div>
+          <div class="sub">27% of all records — the control group</div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>application</code> rows with no linked <code>tenancy</code>.
+            Detected by a Yardi <code>p########</code> prospect code with no <code>t########</code> tenant code.</div>
+        </div>
+        <div class="card stat">
+          <div class="lbl">Median stated income</div>
+          <div class="val">$4,800<span style="font-size:15px;font-weight:600;color:var(--ink-3)">/mo</span></div>
+          <div class="sub">IQR $3,993 – $6,250 · n = 1,104</div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>employment.stated_monthly_income</code> — RentCafe Application, label
+            <code>'Monthly Income:'</code>. <b>Unverified.</b> Bank-verified income is a separate
+            field at 16% coverage.</div>
+        </div>
+      </div>
+
+      <!-- ================= ROW 2 — funnel + credit ========================= -->
+      <div class="grid g-2-1" style="margin-bottom:14px">
+
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <h3>The leasing funnel</h3>
+              <p class="card-sub">Where every record stopped. Grouped by outcome, not by stage colour.</p>
+            </div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+          </div>
+          <div class="vizwrap"><div id="funnel"></div>
+            <div class="legend">
+              <span class="li"><span class="sw" style="background:var(--s1)"></span>Never leased</span>
+              <span class="li"><span class="sw" style="background:var(--s3)"></span>Live residents</span>
+              <span class="li"><span class="sw" style="background:var(--s2)"></span>Past residents</span>
+              <span class="li"><span class="sw" style="background:var(--s-null)"></span>No usable documents</span>
+            </div>
+          </div>
+          <div class="tblwrap"><table class="tbl" id="funnelTbl"></table></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>tenancy.funnel_stage</code> · derived in pipeline stage 2 from Yardi p/t codes plus
+            lease artifacts. <b>Grey is not a series colour</b> — it marks the 86 folders with no
+            extractable document, so missing data never reads as a category.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <h3>Credit score</h3>
+              <p class="card-sub">ResidentScore &amp; Experian, banded. Coverage 54%.</p>
+            </div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+          </div>
+          <div class="vizwrap"><div id="credit"></div></div>
+          <div class="tblwrap"><table class="tbl" id="creditTbl"></table></div>
+
+          <hr class="rule">
+          <div style="font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:9px">Median score by outcome</div>
+          <div id="creditByGroup"></div>
+
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>credit_profile.score</code> + <code>.score_model</code> — Credit Report / Screening Report.
+            <b>Two models on different scales</b>; band before aggregating, and never render a score
+            without its model. Measured yield 89% of folders that have a credit document.</div>
+        </div>
+      </div>
+
+      <!-- ================= ROW 3 — employers + titles ====================== -->
+      <div class="grid g2" style="margin-bottom:14px">
+
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <h3>Top employers</h3>
+              <p class="card-sub">Healthcare and research account for 62% of identified employers.</p>
+            </div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+          </div>
+          <div class="vizwrap"><div id="emp"></div>
+            <div class="legend">
+              <span class="li"><span class="sw" style="background:var(--s1)"></span>Healthcare &amp; research</span>
+              <span class="li"><span class="sw" style="background:var(--s2)"></span>All other sectors</span>
+            </div>
+          </div>
+          <div class="tblwrap"><table class="tbl" id="empTbl"></table></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>employment.employer_name</code> — RentCafe Application, label <code>'Employer:'</code>.
+            Requires normalisation: <b>“St Jude”, “St. Jude Children's Research Hospital” and
+            “ST JUDE” are one employer.</b> Snappt income-stream names give a bank-observed
+            cross-check where available.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <h3>Occupation mix</h3>
+              <p class="card-sub">Stated job title, normalised. Coverage 65%.</p>
+            </div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+          </div>
+          <div class="vizwrap"><div id="titles"></div></div>
+          <div class="tblwrap"><table class="tbl" id="titlesTbl"></table></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>employment.job_title</code> → <code>employment.industry</code> (derived).
+            Industry is <b>not a field in any source document</b> — it is an LLM classification over
+            employer + title, run once in pipeline stage 6.</div>
+        </div>
+      </div>
+
+      <!-- ================= ROW 4 — income + origin ========================= -->
+      <div class="grid g-2-1">
+
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <h3>Stated monthly income</h3>
+              <p class="card-sub">Self-reported at application. Median $4,800.</p>
+            </div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+          </div>
+          <div class="vizwrap"><div id="income"></div></div>
+          <div class="tblwrap"><table class="tbl" id="incomeTbl"></table></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>employment.stated_monthly_income</code>. Keep strictly separate from
+            <code>income_verification.verified_gross_monthly</code> (Snappt, 16% coverage) —
+            <b>the two disagree, and the disagreement is the signal.</b> Never blend into one column.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <h3>Where they came from</h3>
+              <p class="card-sub">By distance from the property.</p>
+            </div>
+            <div class="tools"><a class="mini" href="03-origin-flow-map.html" style="text-decoration:none;display:inline-flex;align-items:center;height:24px;line-height:24px">Open map →</a></div>
+          </div>
+          <div id="bands"></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>residence_history.origin_distance_band</code> — derived from origin ZIP centroid,
+            haversine to 38103. Ordinal ramp, one hue. Full treatment on screen 3.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+shell('overview', 'Portfolio Overview');
+
+/* ---------------------------------------------------------- FUNNEL ------ */
+const FUNNEL = [
+  { k:'1 · Applied only',            v:210, g:'never' },
+  { k:'2 · Screened, never leased',  v:175, g:'never' },
+  { k:'3 · Approved / reserved',     v:37,  g:'never' },
+  { k:'4 · Declined',                v:1,   g:'never' },
+  { k:'5 · Moving in',               v:24,  g:'live'  },
+  { k:'6 · Current resident',        v:498, g:'live'  },
+  { k:'7 · On notice',               v:111, g:'live'  },
+  { k:'8 · Past resident',           v:413, g:'past'  },
+  { k:'9 · No usable documents',     v:86,  g:'none'  },
+];
+const GCOL = { never:'var(--s1)', live:'var(--s3)', past:'var(--s2)', none:'var(--s-null)' };
+const GNAME = { never:'Never leased', live:'Live resident', past:'Past resident', none:'No documents' };
+
+hbars(document.getElementById('funnel'),
+  FUNNEL.map(r => ({
+    k:r.k, v:r.v, color:GCOL[r.g],
+    tip:`<div class='t-r'><span>Share</span><b>${(100*r.v/1555).toFixed(1)}%</b></div>
+         <div class='t-r'><span>Group</span><b>${GNAME[r.g]}</b></div>`
+  })),
+  { w:600, rowH:32, barH:18, padL:196, padR:56, metric:'Records', aria:'Records by funnel stage' });
+
+document.getElementById('funnelTbl').innerHTML =
+  `<thead><tr><th>Funnel stage</th><th>Group</th><th class="num">Records</th><th class="num">Share</th></tr></thead><tbody>` +
+  FUNNEL.map(r => `<tr><td><span class="keydot" style="background:${GCOL[r.g]}"></span>${r.k}</td>
+     <td>${GNAME[r.g]}</td><td class="num">${fmt(r.v)}</td><td class="num">${(100*r.v/1555).toFixed(1)}%</td></tr>`).join('') +
+  `</tbody>`;
+
+/* ---------------------------------------------------------- CREDIT ------ */
+const CREDIT = [
+  { k:'Below 580', v:62 }, { k:'580 – 619', v:78 }, { k:'620 – 659', v:121 },
+  { k:'660 – 699', v:168 }, { k:'700 – 739', v:184 }, { k:'740 – 779', v:141 }, { k:'780 +', v:86 },
+];
+const CTOT = CREDIT.reduce((a, b) => a + b.v, 0);
+(function () {
+  const w = 330, h = 186, padL = 34, padR = 12, padB = 34, padT = 16;
+  const max = Math.max(...CREDIT.map(d => d.v));
+  const bw = Math.min(24, (w - padL - padR) / CREDIT.length - 8);
+  const step = (w - padL - padR) / CREDIT.length;
+  const y = v => padT + (h - padT - padB) * (1 - v / max);
+  const ticks = [0, 50, 100, 150, 200];
+  document.getElementById('credit').innerHTML = `
+  <svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Credit score distribution">
+    ${ticks.map(t => `<line class="gridline" x1="${padL}" y1="${y(t)}" x2="${w - padR}" y2="${y(t)}"/>
+                      <text class="ax" x="${padL - 7}" y="${y(t) + 3.5}" text-anchor="end">${t}</text>`).join('')}
+    <line class="baseline" x1="${padL}" y1="${y(0)}" x2="${w - padR}" y2="${y(0)}"/>
+    ${CREDIT.map((d, i) => {
+      const x = padL + step * i + (step - bw) / 2, bh = y(0) - y(d.v);
+      const hi = d.k === '700 – 739';
+      return `<path d="M${x},${y(0)} v-${bh - 4} a4,4 0 0 1 4,-4 h${bw - 8} a4,4 0 0 1 4,4 v${bh - 4} z"
+                fill="var(--s1)" opacity="${hi ? 1 : .82}"/>
+              ${hi ? `<text class="vlbl" x="${x + bw / 2}" y="${y(d.v) - 7}" text-anchor="middle">${d.v}</text>` : ''}
+              <rect class="hit" x="${padL + step * i}" y="${padT}" width="${step}" height="${h - padT - padB}" tabindex="0"
+                data-tip="<div class='t-h'>${d.k}</div><div class='t-r'><span>People</span><b>${d.v}</b></div><div class='t-r'><span>Share of scored</span><b>${(100 * d.v / CTOT).toFixed(0)}%</b></div>"/>`;
+    }).join('')}
+    ${CREDIT.map((d, i) => `<text class="ax" x="${padL + step * i + step / 2}" y="${h - 16}" text-anchor="middle"
+        transform="rotate(-32 ${padL + step * i + step / 2} ${h - 16})">${d.k}</text>`).join('')}
+  </svg>
+  <div style="display:flex;gap:16px;margin-top:8px;font-size:11.5px;color:var(--ink-3)">
+    <span>Median <b style="color:var(--ink)">697</b></span>
+    <span>Scored <b style="color:var(--ink)">840</b> of 1,555</span>
+  </div>`;
+})();
+document.getElementById('creditTbl').innerHTML =
+  `<thead><tr><th>Score band</th><th class="num">People</th><th class="num">Share</th></tr></thead><tbody>` +
+  CREDIT.map(d => `<tr><td>${d.k}</td><td class="num">${d.v}</td><td class="num">${(100 * d.v / CTOT).toFixed(0)}%</td></tr>`).join('') +
+  `</tbody>`;
+
+/* --------------------------------------------- CREDIT BY OUTCOME ------- */
+const CBG = [
+  { k:'Never leased', v:661, n:131, c:'var(--s1)' },
+  { k:'Live residents', v:709, n:479, c:'var(--s3)' },
+  { k:'Past residents', v:692, n:353, c:'var(--s2)' },
+];
+document.getElementById('creditByGroup').innerHTML = CBG.map(d => `
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px" tabindex="0"
+       data-tip="<div class='t-h'>${d.k}</div><div class='t-r'><span>Median score</span><b>${d.v}</b></div><div class='t-r'><span>Scored</span><b>${d.n}</b></div>">
+    <span class="keydot" style="background:${d.c};margin:0"></span>
+    <span style="font-size:12px;color:var(--ink-2);flex:1">${d.k}</span>
+    <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums">${d.v}</span>
+    <span style="font-size:11px;color:var(--ink-3);width:52px;text-align:right">n=${d.n}</span>
+  </div>`).join('') +
+  `<div style="font-size:11.5px;color:var(--ink-3);margin-top:9px;line-height:1.5">
+     Applicants who never leased score <b style="color:var(--ink)">48 points lower</b> than those who did.</div>`;
+
+/* -------------------------------------------------------- EMPLOYERS ----- */
+const HEALTH = new Set(["St. Jude Children's Research Hospital", 'UT Health Science Center',
+  'Methodist Le Bonheur Healthcare', 'Regional One Health']);
+const EMP = [
+  { k:"St. Jude Children's Research Hospital", v:40 }, { k:'UT Health Science Center', v:15 },
+  { k:'Methodist Le Bonheur Healthcare', v:7 }, { k:'Shelby County Schools', v:6 },
+  { k:'Regional One Health', v:6 }, { k:'Buckman', v:6 }, { k:'FedEx', v:5 },
+  { k:'AutoZone', v:3 }, { k:'University of Memphis', v:3 }, { k:'Nike', v:3 },
+];
+hbars(document.getElementById('emp'),
+  EMP.map(r => ({ k:r.k.length > 30 ? r.k.slice(0, 29) + '…' : r.k, v:r.v,
+    color: HEALTH.has(r.k) ? 'var(--s1)' : 'var(--s2)',
+    tip:`<div class='t-r'><span>Sector</span><b>${HEALTH.has(r.k) ? 'Healthcare & research' : 'Other'}</b></div>` })),
+  { w:520, rowH:27, barH:15, padL:214, padR:44, metric:'Applicants', aria:'Applicants by employer' });
+document.getElementById('empTbl').innerHTML =
+  `<thead><tr><th>Employer</th><th>Sector</th><th class="num">Applicants</th></tr></thead><tbody>` +
+  EMP.map(r => `<tr><td><span class="keydot" style="background:${HEALTH.has(r.k) ? 'var(--s1)' : 'var(--s2)'}"></span>${r.k}</td>
+    <td>${HEALTH.has(r.k) ? 'Healthcare & research' : 'Other'}</td><td class="num">${r.v}</td></tr>`).join('') + `</tbody>`;
+
+/* ----------------------------------------------------------- TITLES ----- */
+const TITLES = [
+  { k:'Student', v:22 }, { k:'Registered nurse', v:9 }, { k:'Scientist / researcher', v:8 },
+  { k:'Teacher', v:6 }, { k:'Resident physician', v:4 }, { k:'Truck driver', v:4 },
+  { k:'Retired', v:4 }, { k:'Postdoctoral researcher', v:3 },
+];
+hbars(document.getElementById('titles'), TITLES,
+  { w:520, rowH:27, barH:15, padL:190, padR:44, metric:'People', aria:'People by stated job title' });
+document.getElementById('titlesTbl').innerHTML =
+  `<thead><tr><th>Job title</th><th class="num">People</th></tr></thead><tbody>` +
+  TITLES.map(r => `<tr><td>${r.k}</td><td class="num">${r.v}</td></tr>`).join('') + `</tbody>`;
+
+/* ----------------------------------------------------------- INCOME ----- */
+const INC = [
+  { k:'Under $2k', v:40 }, { k:'$2 – 4k', v:250 }, { k:'$4 – 6k', v:420 },
+  { k:'$6 – 8k', v:210 }, { k:'$8 – 10k', v:105 }, { k:'$10k +', v:79 },
+];
+const ITOT = INC.reduce((a, b) => a + b.v, 0);
+(function () {
+  const w = 560, h = 190, padL = 40, padR = 14, padB = 30, padT = 18;
+  const max = Math.max(...INC.map(d => d.v));
+  const step = (w - padL - padR) / INC.length, bw = Math.min(24, step - 26);
+  const y = v => padT + (h - padT - padB) * (1 - v / max);
+  const ticks = [0, 100, 200, 300, 400];
+  document.getElementById('income').innerHTML = `
+  <svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Stated monthly income distribution">
+    ${ticks.map(t => `<line class="gridline" x1="${padL}" y1="${y(t)}" x2="${w - padR}" y2="${y(t)}"/>
+      <text class="ax" x="${padL - 7}" y="${y(t) + 3.5}" text-anchor="end">${t}</text>`).join('')}
+    <line class="baseline" x1="${padL}" y1="${y(0)}" x2="${w - padR}" y2="${y(0)}"/>
+    ${INC.map((d, i) => {
+      const x = padL + step * i + (step - bw) / 2, bh = y(0) - y(d.v), hi = d.k === '$4 – 6k';
+      return `<path d="M${x},${y(0)} v-${bh - 4} a4,4 0 0 1 4,-4 h${bw - 8} a4,4 0 0 1 4,4 v${bh - 4} z"
+                fill="var(--s1)" opacity="${hi ? 1 : .82}"/>
+        ${hi ? `<text class="vlbl" x="${x + bw / 2}" y="${y(d.v) - 7}" text-anchor="middle">${d.v}</text>` : ''}
+        <rect class="hit" x="${padL + step * i}" y="${padT}" width="${step}" height="${h - padT - padB}" tabindex="0"
+          data-tip="<div class='t-h'>${d.k} / month</div><div class='t-r'><span>People</span><b>${d.v}</b></div><div class='t-r'><span>Share</span><b>${(100 * d.v / ITOT).toFixed(0)}%</b></div>"/>`;
+    }).join('')}
+    ${INC.map((d, i) => `<text class="ax" x="${padL + step * i + step / 2}" y="${h - 12}" text-anchor="middle">${d.k}</text>`).join('')}
+  </svg>`;
+})();
+document.getElementById('incomeTbl').innerHTML =
+  `<thead><tr><th>Monthly income</th><th class="num">People</th><th class="num">Share</th></tr></thead><tbody>` +
+  INC.map(d => `<tr><td>${d.k}</td><td class="num">${d.v}</td><td class="num">${(100 * d.v / ITOT).toFixed(0)}%</td></tr>`).join('') + `</tbody>`;
+
+/* ------------------------------------------------------------ BANDS ----- */
+const BANDS = [
+  { k:'Downtown core (<10 mi)', v:21, c:'var(--o1)' },
+  { k:'Memphis metro (10–50)',  v:43, c:'var(--o2)' },
+  { k:'Regional (50–250)',      v:20, c:'var(--o3)' },
+  { k:'National (250+)',        v:65, c:'var(--o4)' },
+  { k:'International',          v:25, c:'var(--o5)' },
+];
+const BTOT = BANDS.reduce((a, b) => a + b.v, 0);
+document.getElementById('bands').innerHTML = BANDS.map(b => `
+  <div style="margin-bottom:11px" tabindex="0" data-tip="<div class='t-h'>${b.k}</div>
+      <div class='t-r'><span>Applicants</span><b>${b.v}</b></div>
+      <div class='t-r'><span>Share</span><b>${(100 * b.v / BTOT).toFixed(0)}%</b></div>">
+    <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px">
+      <span style="color:var(--ink-2)">${b.k}</span>
+      <b style="font-variant-numeric:tabular-nums">${(100 * b.v / BTOT).toFixed(0)}%</b>
+    </div>
+    <div class="meter"><i style="width:${100 * b.v / BTOT}%;background:${b.c}"></i></div>
+  </div>`).join('') +
+  `<div style="font-size:11.5px;color:var(--ink-3);margin-top:12px;padding-top:11px;border-top:1px solid var(--border)">
+     53% arrive from outside the Memphis metro.</div>`;
+</script>
+</body>
+</html>

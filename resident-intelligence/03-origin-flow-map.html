@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Origin Flow Map — Trilogy Resident Intelligence</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  .maprail { display:grid; grid-template-columns:1fr 268px; gap:16px; }
+  @media (max-width:1180px){ .maprail { grid-template-columns:1fr; } }
+  .band {
+    padding:9px 11px; border-radius:10px; border:1px solid var(--border);
+    background:var(--surface-2); margin-bottom:7px; cursor:pointer;
+  }
+  .band:hover { border-color:var(--border-strong); }
+  .band.on { border-color:color-mix(in srgb,var(--s1) 55%,transparent); background:color-mix(in srgb,var(--s1) 6%,transparent); }
+  .band-top { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .band-dot { width:11px; height:11px; border-radius:4px; flex:none; }
+  .band-name { font-size:12px; font-weight:650; }
+  .band-n { margin-left:auto; font-size:13px; font-weight:750; font-variant-numeric:tabular-nums; }
+  .band-stats { display:flex; gap:12px; font-size:10.5px; color:var(--ink-3); }
+  .band-stats b { color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .usmap { width:100%; height:auto; display:block; }
+  .usoutline { fill:var(--surface-3); stroke:var(--axis); stroke-width:1; stroke-linejoin:round; }
+  .arc { fill:none; stroke:var(--s1); stroke-linecap:round; }
+  .bub { stroke:var(--chart-surface); stroke-width:2; }
+  .home { fill:var(--s2); stroke:var(--chart-surface); stroke-width:2.5; }
+  .homelbl { font-size:11px; font-weight:750; fill:var(--ink); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side"></aside>
+  <div class="main">
+    <header class="top"><div class="top-right"></div></header>
+    <div class="page">
+
+      <div class="page-head">
+        <h1>Origin Flow Map</h1>
+        <p>Where applicants moved from. The origin data is bimodal — roughly half local churn, half genuine
+           in-migration across 24 states — so the view carries both scales at once.</p>
+      </div>
+
+      <div class="specbar">
+        <div><b>Design rationale.</b> A plain national choropleth collapses 47% of the population into a
+        single dot over Memphis; a metro-only map discards the national story. The <b>distance-band rail</b>
+        on the right is the primary encoding — the map is texture. Bands drive the filter; the map follows.</div>
+      </div>
+
+      <div class="filters">
+        <span class="fl">Scale</span>
+        <span class="chip on" id="scaleNat">National</span>
+        <span class="chip" id="scaleMetro">Memphis metro</span>
+        <span class="fl" style="margin-left:10px">Colour by</span>
+        <select class="sel" id="colorBy">
+          <option>Applicant volume</option>
+          <option>Median stated income</option>
+          <option>Median credit score</option>
+          <option>Conversion rate</option>
+        </select>
+        <span class="fl" style="margin-left:10px">Cohort</span>
+        <select class="sel"><option>All applicants</option><option>Converted to a lease</option><option>Never leased</option></select>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--ink-3)">
+          Origin resolved for <b style="color:var(--ink)">774</b> of 1,555 · 50% coverage</span>
+      </div>
+
+      <div class="notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 9v5M12 17.5v.5M10.3 3.9 2.5 18a1.7 1.7 0 0 0 1.5 2.6h16a1.7 1.7 0 0 0 1.5-2.6L13.7 3.9a1.7 1.7 0 0 0-3 0z"/></svg>
+        <div><b>Coverage is half.</b> Only ~50% of RentCafe applications yield a clean origin ZIP, because the
+        two application layouts format addresses differently. The map must always render its own coverage figure —
+        an origin map over half the applicants is a different claim from one over all of them.</div>
+      </div>
+
+      <!-- ==================== MAP + RAIL ================================== -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-h">
+          <div>
+            <h3>Origin of applicants <span class="anno-i">residence_history.origin_zip</span></h3>
+            <p class="card-sub">Bubble area = applicant volume. Arcs flow to Riverset. Schematic projection — not to scale.</p>
+          </div>
+          <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+        </div>
+
+        <div class="vizwrap">
+          <div class="maprail">
+            <div id="map"></div>
+            <div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3);margin-bottom:9px">
+                Distance from property</div>
+              <div id="rail"></div>
+              <div style="margin-top:13px;padding-top:12px;border-top:1px solid var(--border);font-size:11.5px;color:var(--ink-3);line-height:1.55">
+                <b style="color:var(--ink)">53%</b> of applicants arrive from outside the Memphis metro —
+                the single most commercially useful fact on this screen.
+              </div>
+            </div>
+          </div>
+          <div class="legend" style="margin-top:14px">
+            <span class="li"><span class="sw" style="background:var(--o1)"></span>&lt;10 mi</span>
+            <span class="li"><span class="sw" style="background:var(--o2)"></span>10–50 mi</span>
+            <span class="li"><span class="sw" style="background:var(--o3)"></span>50–250 mi</span>
+            <span class="li"><span class="sw" style="background:var(--o4)"></span>250+ mi</span>
+            <span class="li"><span class="sw" style="background:var(--o5)"></span>International</span>
+            <span class="li" style="margin-left:auto"><span class="sw" style="background:var(--s2);border-radius:50%"></span>Riverset Apartments</span>
+          </div>
+        </div>
+        <div class="tblwrap"><table class="tbl" id="mapTbl"></table></div>
+
+        <div class="anno"><span class="a-h">Binding</span>
+          <code>residence_history.origin_zip · origin_city · origin_state</code> — RentCafe Application.
+          <b>Two layouts:</b> one uses explicit <code>City:</code> / <code>Zip:</code> labels, the other stacks
+          <code>CITY, ST. ZIP</code> across separate lines. Write both branches or you lose half the rows.
+          Validate state against the ZIP prefix and <b>trust the ZIP on conflict</b>.
+          Band = haversine from ZIP centroid to 38103.</div>
+      </div>
+
+      <!-- ==================== SANKEY + STATES ============================= -->
+      <div class="grid g-2-1" style="margin-bottom:14px">
+
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <h3>Does distance predict conversion?</h3>
+              <p class="card-sub">Origin band → what happened to the application.</p>
+            </div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+          </div>
+          <div class="vizwrap"><div id="sankey"></div>
+            <div class="legend">
+              <span class="li"><span class="sw" style="background:var(--s3)"></span>Converted to a lease</span>
+              <span class="li"><span class="sw" style="background:var(--s1)"></span>Never leased</span>
+            </div>
+          </div>
+          <div class="tblwrap"><table class="tbl" id="sankeyTbl"></table></div>
+          <div class="anno"><span class="a-h">Why this panel exists</span>
+            The map shows <i>where</i>. This shows <i>so what</i>. Riverset is a downtown asset with a heavy
+            St. Jude employment cluster — if out-of-state applicants convert better, that redirects marketing
+            spend. Join <code>residence_history.origin_distance_band</code> to
+            <code>tenancy.funnel_stage</code>.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div><h3>Top origin states</h3><p class="card-sub">Outside Tennessee. Bar colour = distance band.</p></div></div>
+          <div id="states"></div>
+          <div class="legend" style="margin-top:9px">
+            <span class="li"><span class="sw" style="background:var(--o3)"></span>Regional</span>
+            <span class="li"><span class="sw" style="background:var(--o4)"></span>National</span>
+          </div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>residence_history.origin_state</code>. Tennessee (53%) is excluded here — it would
+            dominate and is already covered by the two Memphis bands.</div>
+        </div>
+      </div>
+
+      <!-- ==================== INTERNATIONAL + REASONS ===================== -->
+      <div class="grid g2">
+
+        <div class="card">
+          <div class="card-h">
+            <div><h3>International applicants</h3>
+            <p class="card-sub">From <code style="font-size:11px">license_country</code> — no passport scan required.</p></div>
+          </div>
+          <div id="intl"></div>
+          <div class="anno"><span class="a-h">Binding &amp; design note</span>
+            <code>person.license_country</code> — RentCafe Application, label <code>'License Country:'</code>.
+            <b>Deliberately not a second map.</b> Too few records to justify a world projection; it renders
+            as the outer band on the rail with a country breakdown on click.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <div><h3>Why they moved</h3><p class="card-sub">Free-text reason, LLM-categorised.</p></div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div>
+          </div>
+          <div class="vizwrap"><div id="reasons"></div></div>
+          <div class="tblwrap"><table class="tbl" id="reasonsTbl"></table></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>residence_history.reason_for_moving</code> — free text on the application
+            (observed: “work”, “new job”, “school”, “closer to work”, “change environment”).
+            Categorised in pipeline stage 6. <b>Store the raw string alongside the category</b> —
+            the vocabulary will drift.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+shell('origin', 'Origin Flow Map');
+
+/* --------------------------------------------------------- MAP DATA ----- */
+// Schematic projection: x = 40 + (lon+125)*14.48 ; y = 45 + (49-lat)*17.71
+const HOME = { x:547, y:291 };
+const ORIGINS = [
+  { st:'TN', x:637, y:262, v:79,  band:1 }, { st:'AR', x:512, y:296, v:10, band:3 },
+  { st:'NY', x:757, y:153, v:8,  band:4 }, { st:'IL', x:558, y:204, v:6,  band:4 },
+  { st:'MS', x:551, y:334, v:6,  band:3 }, { st:'LA', x:518, y:364, v:5,  band:3 },
+  { st:'TX', x:412, y:355, v:5,  band:4 }, { st:'PA', x:723, y:187, v:3,  band:4 },
+  { st:'AL', x:593, y:332, v:3,  band:3 }, { st:'MI', x:619, y:128, v:3,  band:4 },
+  { st:'FL', x:667, y:406, v:3,  band:4 }, { st:'GA', x:642, y:335, v:3,  band:4 },
+  { st:'CA', x:121, y:261, v:2,  band:4 }, { st:'IN', x:600, y:208, v:2,  band:4 },
+  { st:'SC', x:679, y:314, v:2,  band:4 }, { st:'VA', x:712, y:249, v:1,  band:4 },
+  { st:'MO', x:511, y:233, v:1,  band:4 }, { st:'OH', x:651, y:197, v:1,  band:4 },
+  { st:'CO', x:322, y:222, v:1,  band:4 }, { st:'AZ', x:233, y:305, v:1,  band:4 },
+  { st:'WA', x:102, y:73,  v:1,  band:4 }, { st:'MA', x:810, y:162, v:1,  band:4 },
+  { st:'MN', x:485, y:93,  v:1,  band:4 }, { st:'WI', x:553, y:123, v:1,  band:4 },
+];
+const BANDCOL = { 1:'var(--o1)', 2:'var(--o2)', 3:'var(--o3)', 4:'var(--o4)', 5:'var(--o5)' };
+
+// coarse continental-US silhouette (schematic locator, background weight)
+const US = "M70,45 L171,45 L345,45 L475,45 L518,86 L576,63 L623,89 L656,107 L649,174 L707,146 "
+  + "L743,133 L815,116 L851,77 L880,119 L836,151 L822,178 L779,195 L750,257 L757,289 L714,312 "
+  + "L679,346 L670,369 L690,439 L676,466 L651,420 L634,381 L619,386 L576,376 L561,399 L529,396 "
+  + "L479,394 L444,454 L413,445 L387,385 L358,399 L308,349 L283,358 L242,358 L187,337 L154,337 "
+  + "L105,302 L54,204 L41,55 Z";
+
+(function drawMap() {
+  const W = 900, H = 500;
+  const rOf = v => 4.5 + Math.sqrt(v) * 3.5;
+  const arcs = ORIGINS.filter(o => o.st !== 'TN').map(o => {
+    const mx = (o.x + HOME.x) / 2, my = (o.y + HOME.y) / 2 - Math.abs(o.x - HOME.x) * 0.22 - 16;
+    return `<path class="arc" d="M${o.x},${o.y} Q${mx},${my} ${HOME.x},${HOME.y}"
+             stroke-width="${Math.max(1, Math.min(3.4, o.v * 0.34))}"
+             opacity="${Math.max(.16, Math.min(.5, o.v * 0.045))}"/>`;
+  }).join('');
+  const bubbles = ORIGINS.map(o => `
+    <g>
+      <circle class="bub" cx="${o.x}" cy="${o.y}" r="${rOf(o.v)}" fill="${BANDCOL[o.band]}" opacity=".9"/>
+      ${o.v >= 5 ? `<text class="vlbl" x="${o.x}" y="${o.y - rOf(o.v) - 6}" text-anchor="middle">${o.st}</text>` : ''}
+      <circle class="hit" cx="${o.x}" cy="${o.y}" r="${Math.max(16, rOf(o.v) + 8)}" tabindex="0"
+        data-tip="<div class='t-h'>${o.st}</div>
+          <div class='t-r'><span>Applicants</span><b>${o.v}</b></div>
+          <div class='t-r'><span>Share of resolved</span><b>${(100 * o.v / 149).toFixed(1)}%</b></div>
+          <div class='t-r'><span>Band</span><b>${['','&lt;10 mi','10–50 mi','50–250 mi','250+ mi','International'][o.band]}</b></div>"/>
+    </g>`).join('');
+  document.getElementById('map').innerHTML = `
+  <svg class="usmap" viewBox="0 0 ${W} ${H}" role="img" aria-label="Applicant origins across the United States">
+    <path class="usoutline" d="${US}"/>
+    ${arcs}${bubbles}
+    <circle class="home" cx="${HOME.x}" cy="${HOME.y}" r="7.5"/>
+    <text class="homelbl" x="${HOME.x + 13}" y="${HOME.y + 4}">Riverset · Memphis</text>
+  </svg>`;
+})();
+
+document.getElementById('mapTbl').innerHTML =
+  `<thead><tr><th>Origin state</th><th>Distance band</th><th class="num">Applicants</th><th class="num">Share</th></tr></thead><tbody>` +
+  ORIGINS.slice().sort((a, b) => b.v - a.v).map(o =>
+    `<tr><td><span class="keydot" style="background:${BANDCOL[o.band]}"></span>${o.st}</td>
+      <td>${['', '<10 mi', '10–50 mi', '50–250 mi', '250+ mi', 'International'][o.band]}</td>
+      <td class="num">${o.v}</td><td class="num">${(100 * o.v / 149).toFixed(1)}%</td></tr>`).join('') + `</tbody>`;
+
+/* ------------------------------------------------------------- RAIL ----- */
+const RAIL = [
+  { k:'Downtown core',  sub:'under 10 mi',  v:21, c:'var(--o1)', conv:'71%', inc:'$4,100', sc:673 },
+  { k:'Memphis metro',  sub:'10 – 50 mi',   v:43, c:'var(--o2)', conv:'66%', inc:'$4,450', sc:681 },
+  { k:'Regional',       sub:'50 – 250 mi',  v:20, c:'var(--o3)', conv:'70%', inc:'$4,900', sc:694 },
+  { k:'National',       sub:'250+ mi',      v:65, c:'var(--o4)', conv:'78%', inc:'$5,600', sc:712 },
+  { k:'International',  sub:'non-US licence', v:25, c:'var(--o5)', conv:'81%', inc:'$5,200', sc:702 },
+];
+const RTOT = RAIL.reduce((a, b) => a + b.v, 0);
+document.getElementById('rail').innerHTML = RAIL.map((b, i) => `
+  <div class="band ${i === 3 ? 'on' : ''}" tabindex="0"
+       data-tip="<div class='t-h'>${b.k} · ${b.sub}</div>
+         <div class='t-r'><span>Applicants</span><b>${b.v}</b></div>
+         <div class='t-r'><span>Converted</span><b>${b.conv}</b></div>
+         <div class='t-r'><span>Median income</span><b>${b.inc}/mo</b></div>
+         <div class='t-r'><span>Median score</span><b>${b.sc}</b></div>">
+    <div class="band-top">
+      <span class="band-dot" style="background:${b.c}"></span>
+      <span class="band-name">${b.k}</span>
+      <span class="band-n">${(100 * b.v / RTOT).toFixed(0)}%</span>
+    </div>
+    <div class="band-stats">
+      <span>n <b>${b.v}</b></span><span>conv <b>${b.conv}</b></span>
+      <span>inc <b>${b.inc}</b></span><span>score <b>${b.sc}</b></span>
+    </div>
+  </div>`).join('');
+
+/* ----------------------------------------------------------- SANKEY ----- */
+(function sankey() {
+  const rows = RAIL.map(b => ({ k:b.k, conv:Math.round(b.v * parseFloat(b.conv) / 100), tot:b.v }));
+  const W = 560, rowH = 46, padL = 118, padR = 74, H = rows.length * rowH + 14;
+  const plot = W - padL - padR, max = Math.max(...rows.map(r => r.tot));
+  document.getElementById('sankey').innerHTML = `
+  <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Conversion by origin distance band">
+    ${rows.map((r, i) => {
+      const y = i * rowH + 10, bh = 17;
+      const wTot = plot * r.tot / max, wConv = wTot * r.conv / r.tot;
+      return `
+      <text class="axlbl" x="${padL - 10}" y="${y + bh / 2 + 4}" text-anchor="end">${r.k}</text>
+      <path d="M${padL},${y} h${wConv - 4} a4,4 0 0 1 4,4 v${bh - 8} a4,4 0 0 1 -4,4 h-${wConv - 4} z" fill="var(--s3)"/>
+      <path d="M${padL + wConv + 2},${y} h${wTot - wConv - 6} a4,4 0 0 1 4,4 v${bh - 8} a4,4 0 0 1 -4,4 h-${wTot - wConv - 6} z" fill="var(--s1)" opacity=".55"/>
+      <text class="vlbl" x="${padL + wTot + 9}" y="${y + bh / 2 + 4}">${Math.round(100 * r.conv / r.tot)}%</text>
+      <rect class="hit" x="0" y="${i * rowH}" width="${W}" height="${rowH}" tabindex="0"
+        data-tip="<div class='t-h'>${r.k}</div>
+          <div class='t-r'><span>Applicants</span><b>${r.tot}</b></div>
+          <div class='t-r'><span>Converted</span><b>${r.conv}</b></div>
+          <div class='t-r'><span>Never leased</span><b>${r.tot - r.conv}</b></div>"/>`;
+    }).join('')}
+  </svg>
+  <div style="font-size:11.5px;color:var(--ink-3);margin-top:6px">
+    Long-distance applicants convert <b style="color:var(--ink)">12 points higher</b> than local ones —
+    they have already committed to the move.</div>`;
+  document.getElementById('sankeyTbl').innerHTML =
+    `<thead><tr><th>Origin band</th><th class="num">Applicants</th><th class="num">Converted</th><th class="num">Rate</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${r.k}</td><td class="num">${r.tot}</td><td class="num">${r.conv}</td>
+      <td class="num">${Math.round(100 * r.conv / r.tot)}%</td></tr>`).join('') + `</tbody>`;
+})();
+
+/* ----------------------------------------------------------- STATES ----- */
+const ST = ORIGINS.filter(o => o.st !== 'TN').sort((a, b) => b.v - a.v).slice(0, 8);
+hbars(document.getElementById('states'), ST.map(o => ({ k:o.st, v:o.v, color:BANDCOL[o.band] })),
+  { w:250, rowH:25, barH:13, padL:38, padR:36, metric:'Applicants', aria:'Top origin states outside Tennessee' });
+
+/* ------------------------------------------------------------- INTL ----- */
+const INTL = [
+  { k:'India', v:5 }, { k:'China', v:4 }, { k:'Bangladesh', v:2 }, { k:'Kenya', v:2 },
+  { k:'Mexico', v:2 }, { k:'Pakistan', v:1 }, { k:'France', v:1 }, { k:'Colombia', v:1 }, { k:'Canada', v:1 },
+];
+const ITOT2 = INTL.reduce((a, b) => a + b.v, 0);
+document.getElementById('intl').innerHTML = `
+  <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:12px">
+    <span style="font-size:27px;font-weight:750;letter-spacing:-.9px">${ITOT2}</span>
+    <span style="font-size:12px;color:var(--ink-3)">applicants across ${INTL.length} countries · 14% of resolved origins</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px">
+    ${INTL.map(c => `<span class="badge" tabindex="0"
+        data-tip="<div class='t-h'>${c.k}</div><div class='t-r'><span>Applicants</span><b>${c.v}</b></div>"
+        style="height:25px;font-size:11.5px">${c.k} <b style="margin-left:3px">${c.v}</b></span>`).join('')}
+  </div>`;
+
+/* ---------------------------------------------------------- REASONS ----- */
+const REASONS = [
+  { k:'New job / relocation', v:64 }, { k:'Closer to work', v:31 }, { k:'School / study', v:24 },
+  { k:'Wanted own place', v:19 }, { k:'Lease ended', v:17 }, { k:'Upsize / downsize', v:11 },
+  { k:'Family change', v:9 },
+];
+hbars(document.getElementById('reasons'), REASONS,
+  { w:520, rowH:27, barH:15, padL:168, padR:44, metric:'Applicants', aria:'Stated reason for moving' });
+document.getElementById('reasonsTbl').innerHTML =
+  `<thead><tr><th>Reason (categorised)</th><th class="num">Applicants</th></tr></thead><tbody>` +
+  REASONS.map(r => `<tr><td>${r.k}</td><td class="num">${r.v}</td></tr>`).join('') + `</tbody>`;
+
+/* ------------------------------------------------------- scale toggle --- */
+document.getElementById('scaleNat').onclick = () => setScale(true);
+document.getElementById('scaleMetro').onclick = () => setScale(false);
+function setScale(nat) {
+  document.getElementById('scaleNat').classList.toggle('on', nat);
+  document.getElementById('scaleMetro').classList.toggle('on', !nat);
+}
+</script>
+</body>
+</html>

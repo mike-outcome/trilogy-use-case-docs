@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cohort Explorer — Trilogy Resident Intelligence</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  .cohortbar {
+    display:flex; align-items:center; gap:26px; padding:15px 18px; border-radius:var(--radius);
+    background:linear-gradient(180deg, color-mix(in srgb,var(--s1) 8%,var(--surface)), var(--surface));
+    border:1px solid color-mix(in srgb,var(--s1) 26%,var(--border)); margin-bottom:16px; flex-wrap:wrap;
+  }
+  .cb-n { font-size:32px; font-weight:750; letter-spacing:-1.2px; line-height:1; }
+  .cb-lbl { font-size:11.5px; color:var(--ink-3); margin-bottom:3px; }
+  .cb-i { min-width:104px; }
+  .cb-sep { width:1px; align-self:stretch; background:var(--border); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side"></aside>
+  <div class="main">
+    <header class="top"><div class="top-right"></div></header>
+    <div class="page">
+
+      <div class="page-head">
+        <h1>Cohort Explorer</h1>
+        <p>Define a population, then slice it by any demographic or credit attribute. Every panel below
+           re-renders against the same cohort.</p>
+      </div>
+
+      <div class="specbar">
+        <div><b>The primary analytical surface.</b> One filter row scopes every panel — never a per-panel
+        filter. Colour follows the entity, so removing a series must not repaint the survivors.
+        Every panel ships a table view for the WCAG-clean equivalent.</div>
+      </div>
+
+      <!-- ================= FILTER ROW ===================================== -->
+      <div class="filters">
+        <span class="fl">Cohort</span>
+        <select class="sel"><option>Live residents (633)</option><option>All records (1,555)</option>
+          <option>Never leased (423)</option><option>Past residents (413)</option><option>On notice (111)</option></select>
+        <select class="sel"><option>All industries</option><option>Healthcare &amp; research</option>
+          <option>Education</option><option>Logistics</option><option>Retail &amp; hospitality</option></select>
+        <select class="sel"><option>All origin bands</option><option>Local (&lt;50 mi)</option><option>Regional</option>
+          <option>National</option><option>International</option></select>
+        <select class="sel"><option>Any credit band</option><option>740+</option><option>700–739</option>
+          <option>660–699</option><option>Below 660</option></select>
+        <select class="sel"><option>Any income</option><option>$8k+ / mo</option><option>$6–8k</option>
+          <option>$4–6k</option><option>Under $4k</option></select>
+        <span class="chip on">Individuals only <span class="x">×</span></span>
+        <span class="chip on">Healthcare &amp; research <span class="x">×</span></span>
+      </div>
+
+      <!-- ================= COHORT SUMMARY ================================= -->
+      <div class="cohortbar">
+        <div class="cb-i">
+          <div class="cb-lbl">People in cohort</div>
+          <div class="cb-n">392</div>
+        </div>
+        <div class="cb-sep"></div>
+        <div class="cb-i"><div class="cb-lbl">Median credit score</div>
+          <div style="font-size:20px;font-weight:750">714 <span class="delta up" style="font-size:11px">▲ 17 vs all</span></div></div>
+        <div class="cb-i"><div class="cb-lbl">Median stated income</div>
+          <div style="font-size:20px;font-weight:750">$5,250 <span class="delta up" style="font-size:11px">▲ 9%</span></div></div>
+        <div class="cb-i"><div class="cb-lbl">Rent-to-income</div>
+          <div style="font-size:20px;font-weight:750">25%</div></div>
+        <div class="cb-i"><div class="cb-lbl">From outside metro</div>
+          <div style="font-size:20px;font-weight:750">61%</div></div>
+        <div style="margin-left:auto;display:flex;gap:7px">
+          <button class="btn">Save cohort</button>
+          <button class="btn">Compare →</button>
+        </div>
+        <div class="anno" style="flex-basis:100%"><span class="a-h">Binding</span>
+          Cohort = a predicate over <code>person</code> ⋈ <code>employment</code> ⋈ <code>credit_profile</code>
+          ⋈ <code>residence_history</code> ⋈ <code>tenancy</code>. Deltas compare to the unfiltered population.
+          <b>Saved cohorts feed screen 5.</b></div>
+      </div>
+
+      <!-- ================= BREAKDOWN GRID ================================= -->
+      <div class="grid g3" style="margin-bottom:14px">
+
+        <div class="card">
+          <div class="card-h"><div><h3>Credit band</h3><p class="card-sub">Coverage 81% in this cohort.</p></div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div></div>
+          <div class="vizwrap"><div id="c1"></div></div>
+          <div class="tblwrap"><table class="tbl" id="c1t"></table></div>
+          <div class="anno"><span class="a-h">Binding</span><code>credit_profile.score</code> banded.
+            Ordinal ramp — bands are ordered, so one hue light→dark, never categorical hues.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div><h3>Stated income</h3><p class="card-sub">Monthly, self-reported.</p></div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div></div>
+          <div class="vizwrap"><div id="c2"></div></div>
+          <div class="tblwrap"><table class="tbl" id="c2t"></table></div>
+          <div class="anno"><span class="a-h">Binding</span><code>employment.stated_monthly_income</code>.
+            Bank-verified income is a separate panel — <b>never blended</b>.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div><h3>Marital status</h3><p class="card-sub">Coverage 71%.</p></div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div></div>
+          <div class="vizwrap"><div id="c3"></div></div>
+          <div class="tblwrap"><table class="tbl" id="c3t"></table></div>
+          <div class="anno"><span class="a-h">Binding</span><code>person.marital_status</code> —
+            RentCafe Application, label <code>'Marital Status:'</code>. Closed vocabulary, plain text.
+            <b>Do not read this off the Blue Moon form</b> — its checkboxes are unreadable glyphs.</div>
+        </div>
+      </div>
+
+      <div class="grid g3" style="margin-bottom:14px">
+
+        <div class="card">
+          <div class="card-h"><div><h3>Origin band</h3><p class="card-sub">Distance from the property.</p></div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div></div>
+          <div class="vizwrap"><div id="c4"></div></div>
+          <div class="tblwrap"><table class="tbl" id="c4t"></table></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>residence_history.origin_distance_band</code>. Click through to screen 3 for the map.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div><h3>Employment status</h3><p class="card-sub">Coverage 71%.</p></div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div></div>
+          <div class="vizwrap"><div id="c5"></div></div>
+          <div class="tblwrap"><table class="tbl" id="c5t"></table></div>
+          <div class="anno"><span class="a-h">Binding</span><code>employment.employment_status</code>.
+            “Student” is a meaningful segment here — the UTHSC and St. Jude research population.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div><h3>Vehicles per household</h3><p class="card-sub">Coverage 52%.</p></div>
+            <div class="tools"><button class="mini" data-table-toggle>Table</button></div></div>
+          <div class="vizwrap"><div id="c6"></div></div>
+          <div class="tblwrap"><table class="tbl" id="c6t"></table></div>
+          <div class="anno"><span class="a-h">Binding</span>
+            <code>COUNT(vehicle)</code> per <code>household</code> — RentCafe Application, Vehicle Information
+            block. <b>Whitespace-aligned table:</b> split rows on 2+ spaces, not tabs. Parking-demand proxy.</div>
+        </div>
+      </div>
+
+      <!-- ================= RESULT LIST ==================================== -->
+      <div class="card">
+        <div class="card-h">
+          <div><h3>People in this cohort</h3>
+          <p class="card-sub">392 records · showing 8 · resident-level values below are synthetic.</p></div>
+          <div class="tools"><button class="mini">Export CSV</button></div>
+        </div>
+        <div class="scrollx">
+          <table class="tbl" id="people"></table>
+        </div>
+        <div class="anno"><span class="a-h">Binding &amp; privacy</span>
+          Row = <code>person</code>. <b>Every cell carries a <code>source_document_id</code></b> so the app can
+          always show why a value is blank — 19% of folders have no extractable document.
+          Real names, emails and addresses must never leave the platform; this mockup uses synthetic identities.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+shell('cohort', 'Cohort Explorer');
+
+function mini(id, tid, rows, opt = {}) {
+  hbars(document.getElementById(id), rows,
+    Object.assign({ w:420, rowH:26, barH:14, padL:132, padR:46, metric:'People' }, opt));
+  const tot = rows.reduce((a, b) => a + b.v, 0);
+  document.getElementById(tid).innerHTML =
+    `<thead><tr><th>${opt.dim || 'Value'}</th><th class="num">People</th><th class="num">Share</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${r.color ? `<span class="keydot" style="background:${r.color}"></span>` : ''}${r.k}</td>
+      <td class="num">${r.v}</td><td class="num">${(100 * r.v / tot).toFixed(0)}%</td></tr>`).join('') + `</tbody>`;
+}
+
+mini('c1', 'c1t', [
+  { k:'780 +',      v:44, color:'var(--o5)' }, { k:'740 – 779', v:72, color:'var(--o4)' },
+  { k:'700 – 739',  v:88, color:'var(--o3)' }, { k:'660 – 699', v:69, color:'var(--o2)' },
+  { k:'Below 660',  v:45, color:'var(--o1)' },
+], { dim:'Credit band' });
+
+mini('c2', 'c2t', [
+  { k:'$10k +',   v:31 }, { k:'$8 – 10k', v:44 }, { k:'$6 – 8k', v:86 },
+  { k:'$4 – 6k',  v:151 }, { k:'$2 – 4k', v:69 }, { k:'Under $2k', v:11 },
+], { dim:'Monthly income' });
+
+mini('c3', 'c3t', [
+  { k:'Single',   v:219, color:'var(--s1)' },
+  { k:'Married',  v:59,  color:'var(--s3)' },
+  { k:'Not stated', v:114, color:'var(--s-null)' },
+], { dim:'Marital status' });
+
+// ordered near → far so the ordinal ramp reads in sequence, not by value
+mini('c4', 'c4t', [
+  { k:'Downtown core',    v:46,  color:'var(--o1)' }, { k:'Memphis metro', v:93,  color:'var(--o2)' },
+  { k:'Regional',         v:44,  color:'var(--o3)' }, { k:'National (250+)', v:141, color:'var(--o4)' },
+  { k:'International',    v:56,  color:'var(--o5)' }, { k:'Not resolved',  v:12,  color:'var(--s-null)' },
+], { dim:'Origin band' });
+
+mini('c5', 'c5t', [
+  { k:'Employed',  v:288 }, { k:'Student', v:71 }, { k:'Retired', v:16 }, { k:'Not stated', v:17, color:'var(--s-null)' },
+], { dim:'Employment status' });
+
+mini('c6', 'c6t', [
+  { k:'2 vehicles', v:88 }, { k:'1 vehicle', v:96 }, { k:'3 +', v:12 }, { k:'None listed', v:196, color:'var(--s-null)' },
+], { dim:'Vehicles' });
+
+/* ------------------------------------------------------------ PEOPLE ---- */
+const PEOPLE = [
+  ['Aisha N.',  'Registered nurse', 'Methodist Le Bonheur', 'Married', 'Nashville, TN', 'Regional', 728, '$6,100', 'Current'],
+  ['Daniel O.', 'Postdoctoral researcher', "St. Jude Children's", 'Single', 'Pittsburgh, PA', 'National', 701, '$5,500', 'Current'],
+  ['Priya R.',  'Cybersecurity engineer', 'Big River Steel', 'Married', 'Centerton, AR', 'Regional', 652, '$10,000', 'Past'],
+  ['Marcus T.', 'Resident physician', 'UT Health Science Ctr', 'Single', 'Chicago, IL', 'National', 744, '$4,900', 'Current'],
+  ['Lena K.',   'Scientist', "St. Jude Children's", 'Single', 'Shanghai, CN', 'International', 698, '$5,200', 'On notice'],
+  ['Omar S.',   'Staff accountant', 'AutoZone', 'Single', 'Memphis, TN', 'Downtown core', 671, '$4,300', 'Current'],
+  ['Grace W.',  'Teacher', 'Shelby County Schools', 'Married', 'Cordova, TN', 'Memphis metro', 689, '$3,800', 'Current'],
+  ['Tomás V.',  'Truck driver', 'FedEx', 'Single', 'Dallas, TX', 'National', 634, '$4,600', 'Past'],
+];
+const SBADGE = { 'Current':'ok', 'On notice':'warn', 'Past':'' };
+document.getElementById('people').innerHTML =
+  `<thead><tr><th>Person</th><th>Job title</th><th>Employer</th><th>Marital</th><th>Origin</th>
+    <th>Band</th><th class="num">Score</th><th class="num">Income</th><th>Stage</th></tr></thead><tbody>` +
+  PEOPLE.map(p => `<tr>
+      <td style="font-weight:650">${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td>
+      <td>${p[4]}</td><td>${p[5]}</td><td class="num">${p[6]}</td><td class="num">${p[7]}</td>
+      <td><span class="badge ${SBADGE[p[8]]}">${p[8]}</span></td></tr>`).join('') + `</tbody>`;
+</script>
+</body>
+</html>
